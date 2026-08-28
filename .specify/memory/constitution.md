@@ -1,50 +1,118 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: (template, unratified) → 1.0.0
+Rationale: Initial ratification — all placeholder tokens replaced with concrete,
+project-specific principles derived from the existing codebase and docs/.
+Modified principles: n/a (initial adoption)
+Added sections:
+  - Core Principles: Simplicity First, Explicit Schema Evolution,
+    Consistent Token-Driven UI, Secure-by-Default Input Handling,
+    Test Coverage Commensurate with Complexity
+  - Technology Stack Constraints
+  - Development Workflow
+  - Governance
+Removed sections: none
+Deferred/TODO placeholders: none
+Templates requiring follow-up: none — plan/spec/tasks templates reference the
+  constitution generically and need no changes for this ratification.
+-->
+
+# Travel Notes Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Simplicity First
+Every feature MUST use the simplest structure that solves the problem. For
+CRUD-shaped work: one controller/service per resource, thin methods that
+validate → persist → map to a DTO — no additional layers (repositories,
+mediators, business-logic services) unless non-trivial logic actually exists
+that needs isolating. On the frontend, no state management library beyond
+Angular signals is permitted unless a documented state complexity problem
+cannot reasonably be solved with signals. Rationale: this is a reference/
+example app for spec-driven development; unnecessary abstraction obscures the
+patterns it exists to demonstrate and slows every future change.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Explicit Schema Evolution
+Any change to a persisted entity's shape MUST be accompanied by an explicit,
+documented decision about how existing data is handled — currently via
+`EnsureCreated()` with no EF Core migrations, meaning schema changes do
+nothing to an already-created database. A change MUST NOT silently assume the
+database will "just update"; it MUST either (a) document that existing local
+databases must be deleted, or (b) introduce EF Core migrations before the
+change ships. `docs/data-model.md` MUST be updated in the same change.
+Rationale: silent schema drift between code and an existing SQLite file is a
+correctness bug that is easy to miss without an explicit gate.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Consistent, Token-Driven UI
+All UI elements that render a button, text input, textarea, card, or empty
+state MUST use the corresponding shared `ui-*` primitive
+(`shared/components/*`); new raw styled form/interactive elements in feature
+code are NOT permitted. All component styling MUST derive from the CSS custom
+properties (design tokens) in `src/styles.css` — no hardcoded colors, spacing,
+radii, or font sizes. Presentational components MUST be `OnPush` with signal
+`input()`/`output()` and MUST NOT inject services; only a feature's container
+component may inject its store/API service. Rationale: a single source of
+visual truth keeps the UI consistent as features are added by different
+contributors (human or agent) over time.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Secure-by-Default Input Handling
+All externally-supplied input MUST be validated at the boundary (DataAnnotations
+on request DTOs) rather than re-checked ad hoc deeper in the call stack. Any
+user-supplied text used inside a pattern-matching query (e.g., SQL `LIKE`)
+MUST have wildcard/escape characters escaped before use. Dependency versions
+pinned to remediate a known CVE (e.g., `Microsoft.OpenApi` at 2.7.5) MUST NOT
+be bumped without re-verifying the original vulnerability and any
+compatibility constraint that justified the pin. Rationale: these are the
+concrete security-relevant patterns already established in this codebase;
+regressing any of them re-introduces a known class of bug.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Test Coverage Commensurate with Complexity
+Frontend code MUST retain Vitest/TestBed coverage for store logic, presentational
+component contracts (inputs/outputs), and any non-trivial template logic.
+Backend code currently has no test project; the first time backend logic goes
+beyond simple validate-persist-map CRUD, tests MUST be added alongside it —
+zero backend coverage MUST NOT be extended further by adding untested
+non-trivial logic. Rationale: coverage should track actual risk; a CRUD
+passthrough needs less protection than the first piece of real business logic.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technology Stack Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Backend: ASP.NET Core (currently .NET 10), EF Core + SQLite. No alternative
+  ORM or database engine without a documented reason recorded in
+  `docs/architecture.md`.
+- Frontend: Angular (currently v22), standalone components only (no
+  `NgModule`), Angular signals for state, `pnpm` as the package manager,
+  Vitest for tests. No NgRx/Redux-style store without a documented state
+  complexity problem signals cannot address.
+- Cross-cutting: no authentication/authorization, CORS policy, or production
+  hosting configuration is currently required — this app is a local
+  development/example target. Adding any of these is permitted but MUST be
+  reflected in `docs/architecture.md` when it happens.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- `docs/` is the durable, git-committed reference for architecture, API,
+  data model, frontend structure, and conventions. Any change that alters
+  architecture, API shape, data model, frontend structure, or a convention
+  documented in `docs/conventions.md` MUST update the corresponding doc in the
+  same change.
+- Feature work follows the spec-kit flow: `/speckit-specify` →
+  `/speckit-clarify` → `/speckit-plan` → `/speckit-tasks` →
+  `/speckit-implement`, with `/speckit-analyze` available to check
+  cross-artifact consistency before implementation.
+- Reviews (human or agent self-review before finalizing) MUST check compliance
+  with the Core Principles above; deviations MUST be called out explicitly
+  with a rationale rather than silently merged.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes ad hoc practice for anything it explicitly
+covers. Amendments are made via the `speckit-constitution` workflow only —
+direct hand-edits to this file bypass the required Sync Impact Report and
+version bump and MUST NOT be made. Versioning follows semantic versioning:
+MAJOR for backward-incompatible principle removals/redefinitions, MINOR for
+new or materially expanded principles/sections, PATCH for wording/clarification
+only. `docs/conventions.md` is the day-to-day operational guidance file for
+applying these principles; when the two conflict, this constitution wins.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-08-28 | **Last Amended**: 2026-08-28
