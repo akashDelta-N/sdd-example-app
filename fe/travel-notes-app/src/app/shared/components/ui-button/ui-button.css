@@ -1,0 +1,77 @@
+:host {
+  display: inline-flex;
+}
+
+:host(.full-width) {
+  display: flex;
+  width: 100%;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+:host(.variant-primary) button {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+:host(.variant-primary) button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+:host(.variant-secondary) button {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+:host(.variant-secondary) button:hover:not(:disabled) {
+  background: var(--color-bg);
+}
+
+:host(.variant-danger) button {
+  background: transparent;
+  border-color: var(--color-border-strong);
+  color: var(--color-danger);
+}
+
+:host(.variant-danger) button:hover:not(:disabled) {
+  background: var(--color-danger);
+  border-color: var(--color-danger-hover);
+  color: var(--color-primary-contrast);
+}
+
+:host(.variant-ghost) button {
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+:host(.variant-ghost) button:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

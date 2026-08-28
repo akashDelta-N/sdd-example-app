@@ -1,0 +1,18 @@
+@let errorText = error();
+
+<!-- Wrapping in a label ties the caption to the projected control without id plumbing. -->
+<label>
+  <span class="caption">
+    {{ label() }}
+    @if (required()) {
+      <span class="required" aria-hidden="true">*</span>
+    }
+  </span>
+  <ng-content />
+</label>
+
+@if (errorText) {
+  <p class="error" role="alert">{{ errorText }}</p>
+} @else if (hint(); as hintText) {
+  <p class="hint">{{ hintText }}</p>
+}

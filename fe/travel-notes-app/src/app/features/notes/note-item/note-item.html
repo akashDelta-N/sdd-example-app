@@ -1,0 +1,24 @@
+@let current = note();
+
+<ui-card>
+  <ui-col gap="2">
+    <ui-row gap="3" align="start" justify="between" [wrap]="true">
+      <h2 class="title">{{ current.title }}</h2>
+      <ui-row gap="2">
+        <ui-button [ariaLabel]="'Edit ' + current.title" (clicked)="edit.emit(current.id)">Edit</ui-button>
+        <ui-button
+          variant="danger"
+          [ariaLabel]="'Delete ' + current.title"
+          (clicked)="remove.emit(current.id)"
+          >Delete</ui-button
+        >
+      </ui-row>
+    </ui-row>
+
+    @if (current.body) {
+      <p class="body">{{ current.body }}</p>
+    }
+
+    <p class="meta">Updated {{ current.updatedAt | date: 'medium' }}</p>
+  </ui-col>
+</ui-card>

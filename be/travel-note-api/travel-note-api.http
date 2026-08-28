@@ -1,6 +1,46 @@
-@travel_note_api_HostAddress = http://localhost:5097
+@host = http://localhost:5097
 
-GET {{travel_note_api_HostAddress}}/weatherforecast/
+### List notes
+GET {{host}}/api/notes
 Accept: application/json
+
+### Search notes
+GET {{host}}/api/notes?search=lisbon
+Accept: application/json
+
+### Create a note
+# @name createNote
+POST {{host}}/api/notes
+Content-Type: application/json
+
+{
+  "title": "Lisbon day 1",
+  "body": "Pastel de nata in Belem, tram 28 at sunset."
+}
+
+### Get a single note
+GET {{host}}/api/notes/{{createNote.response.body.id}}
+Accept: application/json
+
+### Update a note
+PUT {{host}}/api/notes/{{createNote.response.body.id}}
+Content-Type: application/json
+
+{
+  "title": "Lisbon day 1 (revised)",
+  "body": "Book the castle in advance."
+}
+
+### Delete a note
+DELETE {{host}}/api/notes/{{createNote.response.body.id}}
+
+### Validation error (empty title -> 400)
+POST {{host}}/api/notes
+Content-Type: application/json
+
+{
+  "title": "",
+  "body": "no title"
+}
 
 ###

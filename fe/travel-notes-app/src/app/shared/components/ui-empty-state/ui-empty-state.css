@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.heading {
+  margin: 0;
+  font-weight: 600;
+}
+
+.message {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

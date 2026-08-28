@@ -1,0 +1,19 @@
+<ui-col gap="3">
+  @for (note of notes(); track note.id) {
+    @if (note.id === editingId()) {
+      <app-note-form
+        [note]="note"
+        (save)="save.emit({ id: note.id, input: $event })"
+        (cancel)="cancelEdit.emit()"
+      />
+    } @else {
+      <app-note-item [note]="note" (edit)="edit.emit($event)" (remove)="remove.emit($event)" />
+    }
+  } @empty {
+    @if (filtered()) {
+      <ui-empty-state heading="No matching notes" message="Try a different search term." />
+    } @else {
+      <ui-empty-state heading="No notes yet" message="Add your first note above." />
+    }
+  }
+</ui-col>

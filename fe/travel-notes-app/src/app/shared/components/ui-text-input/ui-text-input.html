@@ -1,0 +1,11 @@
+<input
+  class="control"
+  [type]="type()"
+  [value]="value()"
+  [disabled]="disabled()"
+  [placeholder]="placeholder()"
+  [attr.autocomplete]="autocomplete()"
+  [attr.aria-label]="ariaLabel()"
+  (input)="onInput($event)"
+  (blur)="onBlur()"
+/>

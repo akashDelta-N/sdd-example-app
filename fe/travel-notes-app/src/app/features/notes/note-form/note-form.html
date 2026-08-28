@@ -1,0 +1,22 @@
+<ui-card>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <ui-col gap="4">
+      <ui-field label="Title" [required]="true" [error]="titleError">
+        <ui-text-input formControlName="title" placeholder="Where were you?" />
+      </ui-field>
+
+      <ui-field label="Note" hint="What do you want to remember about it?">
+        <ui-textarea formControlName="body" [rows]="4" placeholder="Write it down…" />
+      </ui-field>
+
+      <ui-row gap="2" justify="end">
+        @if (isEditing) {
+          <ui-button variant="ghost" (clicked)="cancel.emit()">Cancel</ui-button>
+        }
+        <ui-button variant="primary" type="submit" [disabled]="saving()">
+          {{ isEditing ? 'Save changes' : 'Add note' }}
+        </ui-button>
+      </ui-row>
+    </ui-col>
+  </form>
+</ui-card>

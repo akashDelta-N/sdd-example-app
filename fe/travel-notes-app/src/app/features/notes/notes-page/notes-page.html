@@ -1,0 +1,36 @@
+<ui-container size="md">
+  <ui-col gap="5">
+    <header>
+      <h1 class="page-title">Travel notes</h1>
+      <p class="tagline">Jot down what you want to remember from the road.</p>
+    </header>
+
+    <app-note-form (save)="onCreate($event)" />
+
+    <ui-field label="Search">
+      <ui-text-input
+        [formControl]="searchControl"
+        type="search"
+        placeholder="Search titles and notes…"
+      />
+    </ui-field>
+
+    @if (store.error(); as message) {
+      <p class="error" role="alert">{{ message }}</p>
+    }
+
+    @if (store.loading()) {
+      <p class="status">Loading…</p>
+    }
+
+    <app-note-list
+      [notes]="store.notes()"
+      [editingId]="store.editingId()"
+      [filtered]="store.search().length > 0"
+      (edit)="store.startEdit($event)"
+      (remove)="onRemove($event)"
+      (save)="onSave($event)"
+      (cancelEdit)="store.cancelEdit()"
+    />
+  </ui-col>
+</ui-container>

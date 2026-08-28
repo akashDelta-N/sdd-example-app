@@ -1,0 +1,26 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using travel_note_api.Models;
+
+namespace travel_note_api.Data;
+
+public class NotesDbContext(DbContextOptions<NotesDbContext> options) : DbContext(options)
+{
+    public DbSet<Note> Notes => Set<Note>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // SQLite loses DateTimeKind on read; force UTC back on so the API serialises with a 'Z'.
+        var utc = new ValueConverter<DateTime, DateTime>(
+            v => v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+        var note = modelBuilder.Entity<Note>();
+        note.HasKey(n => n.Id);
+        note.Property(n => n.Title).IsRequired().HasMaxLength(200);
+        note.Property(n => n.Body).IsRequired();
+        note.Property(n => n.CreatedAt).HasConversion(utc);
+        note.Property(n => n.UpdatedAt).HasConversion(utc);
+        note.HasIndex(n => n.UpdatedAt);
+    }
+}
