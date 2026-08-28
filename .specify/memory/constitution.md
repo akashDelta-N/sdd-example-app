@@ -1,20 +1,18 @@
 <!--
 Sync Impact Report
-Version change: (template, unratified) → 1.0.0
-Rationale: Initial ratification — all placeholder tokens replaced with concrete,
-project-specific principles derived from the existing codebase and docs/.
-Modified principles: n/a (initial adoption)
+Version change: 1.0.0 → 1.0.1
+Rationale: Patch amendment — replace a vague rationale statement with an
+explicit, testable coverage rule during constitution review.
+Modified principles:
+  - V. Test Coverage Commensurate with Complexity → wording clarified
 Added sections:
-  - Core Principles: Simplicity First, Explicit Schema Evolution,
-    Consistent Token-Driven UI, Secure-by-Default Input Handling,
-    Test Coverage Commensurate with Complexity
-  - Technology Stack Constraints
-  - Development Workflow
-  - Governance
-Removed sections: none
-Deferred/TODO placeholders: none
+  - none
+Removed sections:
+  - none
+Deferred/TODO placeholders:
+  - none
 Templates requiring follow-up: none — plan/spec/tasks templates reference the
-  constitution generically and need no changes for this ratification.
+  constitution generically and need no changes for this amendment.
 -->
 
 # Travel Notes Constitution
@@ -72,7 +70,7 @@ component contracts (inputs/outputs), and any non-trivial template logic.
 Backend code currently has no test project; the first time backend logic goes
 beyond simple validate-persist-map CRUD, tests MUST be added alongside it —
 zero backend coverage MUST NOT be extended further by adding untested
-non-trivial logic. Rationale: coverage should track actual risk; a CRUD
+non-trivial logic. Rationale: coverage MUST track actual risk; a CRUD
 passthrough needs less protection than the first piece of real business logic.
 
 ## Technology Stack Constraints
@@ -115,4 +113,4 @@ new or materially expanded principles/sections, PATCH for wording/clarification
 only. `docs/conventions.md` is the day-to-day operational guidance file for
 applying these principles; when the two conflict, this constitution wins.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-28 | **Last Amended**: 2026-08-28
+**Version**: 1.0.1 | **Ratified**: 2026-08-28 | **Last Amended**: 2026-08-28
