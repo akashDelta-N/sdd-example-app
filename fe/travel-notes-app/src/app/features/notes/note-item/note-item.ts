@@ -12,7 +12,10 @@ import { UiButton, UiCard, UiCol, UiRow } from '../../../shared/components';
 })
 export class NoteItem {
   readonly note = input.required<Note>();
+  readonly path = input('');
 
-  readonly edit = output<number>();
-  readonly remove = output<number>();
+  readonly select = output<string>();
+  readonly edit = output<string>();
+  readonly remove = output<string>();
+  readonly archive = output<string>();
 }

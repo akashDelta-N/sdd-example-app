@@ -8,14 +8,17 @@ Accept: application/json
 GET {{host}}/api/notes?search=lisbon
 Accept: application/json
 
-### Create a note
+### Create a root note-location
 # @name createNote
 POST {{host}}/api/notes
 Content-Type: application/json
 
 {
-  "title": "Lisbon day 1",
-  "body": "Pastel de nata in Belem, tram 28 at sunset."
+  "title": "Lisbon",
+  "body": "Pastel de nata in Belem, tram 28 at sunset.",
+  "latitude": 38.7223,
+  "longitude": -9.1393,
+  "parentId": null
 }
 
 ### Get a single note
@@ -28,8 +31,14 @@ Content-Type: application/json
 
 {
   "title": "Lisbon day 1 (revised)",
-  "body": "Book the castle in advance."
+  "body": "Book the castle in advance.",
+  "latitude": 38.7223,
+  "longitude": -9.1393,
+  "parentId": null
 }
+
+### Archive a note-location
+POST {{host}}/api/notes/{{createNote.response.body.id}}/archive
 
 ### Delete a note
 DELETE {{host}}/api/notes/{{createNote.response.body.id}}
@@ -39,8 +48,11 @@ POST {{host}}/api/notes
 Content-Type: application/json
 
 {
-  "title": "",
-  "body": "no title"
+  "title": "Missing position",
+  "body": "",
+  "latitude": 91,
+  "longitude": 0,
+  "parentId": null
 }
 
 ###

@@ -13,17 +13,18 @@ human-oriented summary, not a replacement for that spec.
 | Method | Route | Body | Success | Failure |
 |---|---|---|---|---|
 | GET | `/api/notes` | — | 200, `NoteDto[]` | — |
-| GET | `/api/notes?search={term}` | — | 200, `NoteDto[]` filtered by title/body | — |
+| GET | `/api/notes?search={term}&includeArchived={true|false}` | — | 200, `NoteDto[]` filtered by title | — |
 | GET | `/api/notes/{id}` | — | 200, `NoteDto` | 404 if not found |
 | POST | `/api/notes` | `NoteInput` | 201, `NoteDto` (+ `Location` header) | 400 on validation failure |
 | PUT | `/api/notes/{id}` | `NoteInput` | 204 | 404 if not found, 400 on validation failure |
 | DELETE | `/api/notes/{id}` | — | 204 | 404 if not found |
+| POST | `/api/notes/{id}/archive` | — | 204 | 400 when active children exist, 404 if not found |
 
 Notes:
 - List results are always sorted by `updatedAt` descending (most recently
   updated first).
-- `search` matches (case-insensitively, for ASCII) against both `title` and
-  `body` using a SQLite `LIKE`, with `%`, `_`, and `\` escaped in the user input
+- `search` matches (case-insensitively, for ASCII) against `title` using a
+  SQLite `LIKE`, with `%`, `_`, and `\` escaped in the user input
   first — so a literal `%` or `_` in a search term is treated literally, not as
   a wildcard.
 - `Title` is trimmed server-side before being persisted on both create and update.
@@ -37,6 +38,10 @@ Notes:
   id: number;
   title: string;
   body: string;
+  latitude: number;
+  longitude: number;
+  parentId: number | null;
+  isArchived: boolean;
   createdAt: string; // ISO 8601 UTC, e.g. "2026-08-28T12:34:56Z"
   updatedAt: string; // ISO 8601 UTC
 }
@@ -48,6 +53,9 @@ Notes:
 {
   title: string; // required, non-empty after trim, max 200 chars
   body: string;  // optional, max 20000 chars
+  latitude: number; // required, from -90 to 90
+  longitude: number; // required, from -180 to 180
+  parentId: number | null; // null creates a root item
 }
 ```
 
@@ -59,4 +67,4 @@ standard `ValidationProblemDetails` body when these are violated.
 
 See [`../be/travel-note-api/travel-note-api.http`](../be/travel-note-api/travel-note-api.http)
 for ready-to-run request examples (list, search, create, get-by-id, update,
-delete, and a validation-failure case with an empty title).
+archive, delete, and a validation-failure case).

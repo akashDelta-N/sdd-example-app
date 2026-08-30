@@ -22,6 +22,10 @@ dotnet run --project be/travel-note-api/travel-note-api.csproj --launch-profile 
 - The SQLite file `notes.db` is created automatically on first run
   (`EnsureCreated()` — see [data-model.md](data-model.md)). Delete it to reset
   all data.
+- **Location-based notes schema**: before running the location-based notes
+  feature for the first time, delete `be/travel-note-api/notes.db`. Existing
+  flat notes have no required map coordinates and cannot be retained by
+  `EnsureCreated()` schema creation.
 
 ## Run the frontend
 

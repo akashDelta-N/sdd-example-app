@@ -5,7 +5,32 @@
       <p class="tagline">Jot down what you want to remember from the road.</p>
     </header>
 
-    <app-note-form (save)="onCreate($event)" />
+    <ui-row justify="end"><ui-button variant="primary" (clicked)="beginAdd()">Add place</ui-button></ui-row>
+
+    @if (mode() === 'add' && !coordinates()) {
+      <p class="status">Select a position on the map to add a place.</p>
+    }
+
+    <app-location-map [notes]="store.childrenOf(store.selectedId(), true)" [selectedId]="store.selectedId()" [pendingCoordinates]="coordinates()" [mode]="mode()" (select)="select($event)" (picked)="onMapPick($event)" />
+
+    @if (mode() === 'add' && coordinates()) {
+      <app-note-form [coordinates]="coordinates()" [locations]="store.notes()" [defaultParentId]="store.selectedId()" (save)="onCreate($event)" />
+    }
+
+    @if (store.path().length) {
+      <ui-row gap="2">@for (note of store.path(); track note.id) { <ui-button variant="ghost" (clicked)="select(note.id)">{{ note.title }}</ui-button> }</ui-row>
+    }
+
+    @if (store.selected(); as selected) {
+      @if (store.editingId() === selected.id) {
+        <app-note-form [note]="selected" [coordinates]="coordinates()" [locations]="store.notes()" (save)="onSave({ id: selected.id, input: $event })" (cancel)="store.cancelEdit()" />
+      } @else {
+        <app-note-item [note]="selected" (edit)="beginEdit($event)" (archive)="onArchive($event)" (remove)="onRemove($event)" />
+      }
+      <ui-button variant="ghost" (clicked)="toggleDescendants()">
+        {{ store.includeDescendants() ? 'Show direct children' : 'Show descendants' }}
+      </ui-button>
+    }
 
     <ui-field label="Search">
       <ui-text-input
@@ -14,6 +39,10 @@
         placeholder="Search titles and notes…"
       />
     </ui-field>
+
+    @if (store.search()) {
+      <p class="status">Search results show their full location path.</p>
+    }
 
     @if (store.error(); as message) {
       <p class="error" role="alert">{{ message }}</p>
@@ -24,13 +53,15 @@
     }
 
     <app-note-list
-      [notes]="store.notes()"
+      [notes]="store.search() ? store.notes() : (store.selectedId() === null || !store.includeDescendants() ? store.childrenOf(store.selectedId()) : store.visibleNotes())"
       [editingId]="store.editingId()"
       [filtered]="store.search().length > 0"
-      (edit)="store.startEdit($event)"
+      (edit)="beginEdit($event)"
       (remove)="onRemove($event)"
+      (archive)="onArchive($event)"
       (save)="onSave($event)"
       (cancelEdit)="store.cancelEdit()"
+      (select)="select($event)"
     />
   </ui-col>
 </ui-container>

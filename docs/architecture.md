@@ -49,6 +49,10 @@ API are only wired together via the Angular CLI dev proxy (see
   layer (API client + signal-based store) and a `shared` layer (presentational
   UI primitives). See [frontend.md](frontend.md) for details.
 - **State management**: Angular signals, not NgRx/Redux — see `NotesStore`.
+- **Map**: OpenLayers renders OpenStreetMap tiles and note-location pins inside
+  the dedicated `features/notes/location-map` component. The component owns
+  imperative map lifecycle/events and emits selection or geographic-position
+  events to `NotesPage`; map state is not held in the store.
 
 ## Request flow (list notes example)
 

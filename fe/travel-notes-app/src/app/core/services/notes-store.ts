@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged, firstValueFrom } from 'rxjs';
 import { Note, NoteInput } from '../models/note';
@@ -13,7 +13,17 @@ export class NotesStore {
   readonly search = signal('');
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly editingId = signal<number | null>(null);
+  readonly editingId = signal<string | null>(null);
+  readonly selectedId = signal<string | null>(null);
+  readonly includeDescendants = signal(false);
+  readonly selected = computed(() => this.notes().find((note) => note.id === this.selectedId()) ?? null);
+  readonly path = computed(() => this.getPath(this.selectedId()));
+  readonly visibleNotes = computed(() => {
+    const selectedId = this.selectedId();
+    if (selectedId === null) return this.notes();
+    const included = this.includeDescendants() ? this.descendantIds(selectedId) : new Set([selectedId]);
+    return this.notes().filter((note) => included.has(note.id));
+  });
 
   constructor() {
     this.searchTerm$
@@ -42,19 +52,48 @@ export class NotesStore {
     await this.mutate(() => firstValueFrom(this.api.create(input)), 'Could not save the note.');
   }
 
-  async update(id: number, input: NoteInput): Promise<void> {
+  async update(id: string, input: NoteInput): Promise<void> {
     await this.mutate(() => firstValueFrom(this.api.update(id, input)), 'Could not save the note.');
     this.editingId.set(null);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     await this.mutate(() => firstValueFrom(this.api.remove(id)), 'Could not delete the note.');
     if (this.editingId() === id) {
       this.editingId.set(null);
     }
   }
 
-  startEdit(id: number): void {
+  async archive(id: string): Promise<void> {
+    await this.mutate(() => firstValueFrom(this.api.archive(id)), 'Could not archive the note-location.');
+  }
+
+  select(id: string | null): void { this.selectedId.set(id); }
+
+  setIncludeDescendants(value: boolean): void { this.includeDescendants.set(value); }
+
+  childrenOf(parentId: string | null, activeOnly = false): Note[] {
+    return this.notes().filter((note) => note.parentId === parentId && (!activeOnly || !note.isArchived));
+  }
+
+  getPath(id: string | null): Note[] {
+    const result: Note[] = [];
+    let current = this.notes().find((note) => note.id === id);
+    while (current) {
+      result.unshift(current);
+      current = this.notes().find((note) => note.id === current!.parentId);
+    }
+    return result;
+  }
+
+  private descendantIds(id: string): Set<string> {
+    const result = new Set([id]);
+    const visit = (parentId: string) => this.childrenOf(parentId).forEach((child) => { result.add(child.id); visit(child.id); });
+    visit(id);
+    return result;
+  }
+
+  startEdit(id: string): void {
     this.editingId.set(id);
   }
 

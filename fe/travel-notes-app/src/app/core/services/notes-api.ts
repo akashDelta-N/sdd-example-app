@@ -8,8 +8,9 @@ export class NotesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/notes';
 
-  list(search?: string): Observable<Note[]> {
-    const params = search?.trim() ? new HttpParams().set('search', search.trim()) : undefined;
+  list(search?: string, includeArchived = true): Observable<Note[]> {
+    let params = new HttpParams().set('includeArchived', includeArchived);
+    if (search?.trim()) params = params.set('search', search.trim());
     return this.http.get<Note[]>(this.baseUrl, { params });
   }
 
@@ -17,11 +18,15 @@ export class NotesApi {
     return this.http.post<Note>(this.baseUrl, input);
   }
 
-  update(id: number, input: NoteInput): Observable<void> {
+  update(id: string, input: NoteInput): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}`, input);
   }
 
-  remove(id: number): Observable<void> {
+  remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  archive(id: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/${id}/archive`, {});
   }
 }

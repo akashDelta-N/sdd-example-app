@@ -19,6 +19,7 @@ export class UiTextInput implements ControlValueAccessor {
   readonly type = input<'text' | 'search'>('text');
   readonly autocomplete = input('off');
   readonly ariaLabel = input<string>();
+  readonly list = input<string>();
 
   protected readonly value = signal('');
   protected readonly disabled = signal(false);

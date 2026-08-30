@@ -1,7 +1,11 @@
 export interface Note {
-  id: number;
+  id: string;
   title: string;
   body: string;
+  latitude: number;
+  longitude: number;
+  parentId: string | null;
+  isArchived: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -9,4 +13,7 @@ export interface Note {
 export interface NoteInput {
   title: string;
   body: string;
+  latitude: number;
+  longitude: number;
+  parentId: string | null;
 }

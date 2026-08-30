@@ -7,6 +7,10 @@
 | `Id` | `int` | Primary key, auto-increment |
 | `Title` | `string` | Required, max 200 chars, never null (`= string.Empty` default) |
 | `Body` | `string` | Required column (defaults to empty string), max 20000 chars enforced at the DTO/validation layer |
+| `Latitude` | `double` | Required geographic latitude, from -90 to 90 |
+| `Longitude` | `double` | Required geographic longitude, from -180 to 180 |
+| `ParentId` | `int?` | Optional self-referencing parent; null means root |
+| `IsArchived` | `bool` | Archived items are hidden from map pins but remain list-visible |
 | `CreatedAt` | `DateTime` | UTC, set once at creation |
 | `UpdatedAt` | `DateTime` | UTC, updated on every write; indexed for sort performance |
 
@@ -16,12 +20,18 @@ erDiagram
         int Id PK
         string Title
         string Body
+        double Latitude
+        double Longitude
+        int ParentId FK
+        bool IsArchived
         DateTime CreatedAt
         DateTime UpdatedAt
     }
 ```
 
-There is only one entity — no relationships, no foreign keys.
+There is one self-referencing entity: every note-location has zero or one
+parent and any number of children. A title-only row is a valid structural
+location; `Body` is optional content for the same item.
 
 ## Persistence
 
@@ -41,7 +51,10 @@ There is only one entity — no relationships, no foreign keys.
   serialization always includes the trailing `Z`. Without this, timestamps
   would round-trip as unspecified-kind and lose the `Z` suffix.
 - **Index**: `UpdatedAt` is indexed to support the default descending sort used
-  by `GET /api/notes`.
+  by `GET /api/notes`; `ParentId` supports hierarchy lookups.
+- **Schema reset**: location-based notes require coordinates that existing flat
+  rows cannot provide. Delete `be/travel-note-api/notes.db` before first run of
+  this feature so `EnsureCreated()` creates the revised schema.
 - **Query pattern**: reads use `AsNoTracking()` since the API is stateless
   request-per-call and never needs to mutate a previously-read tracked entity.
 

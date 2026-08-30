@@ -5,15 +5,30 @@
         <ui-text-input formControlName="title" placeholder="Where were you?" />
       </ui-field>
 
+      @if (coordinates() || isEditing) {
+        <p class="coordinates">Map position selected.</p>
+      } @else {
+        <p class="coordinates">Select a position on the map first.</p>
+      }
+
       <ui-field label="Note" hint="What do you want to remember about it?">
         <ui-textarea formControlName="body" [rows]="4" placeholder="Write it down…" />
+      </ui-field>
+
+      <ui-field label="Parent location" hint="Leave blank to create a root location.">
+        <ui-text-input formControlName="parentName" list="parent-locations" placeholder="Search by location name" />
+        <datalist id="parent-locations">
+          @for (location of locations(); track location.id) {
+            <option [value]="parentLabel(location.id)"></option>
+          }
+        </datalist>
       </ui-field>
 
       <ui-row gap="2" justify="end">
         @if (isEditing) {
           <ui-button variant="ghost" (clicked)="cancel.emit()">Cancel</ui-button>
         }
-        <ui-button variant="primary" type="submit" [disabled]="saving()">
+        <ui-button variant="primary" type="submit" [disabled]="saving() || (!coordinates() && !isEditing)">
           {{ isEditing ? 'Save changes' : 'Add note' }}
         </ui-button>
       </ui-row>

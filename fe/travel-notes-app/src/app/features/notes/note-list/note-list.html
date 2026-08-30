@@ -1,13 +1,9 @@
 <ui-col gap="3">
-  @for (note of notes(); track note.id) {
+  @for (note of orderedNotes(); track note.id) {
     @if (note.id === editingId()) {
-      <app-note-form
-        [note]="note"
-        (save)="save.emit({ id: note.id, input: $event })"
-        (cancel)="cancelEdit.emit()"
-      />
+      <app-note-form [note]="note" (save)="save.emit({ id: note.id, input: $event })" (cancel)="cancelEdit.emit()" />
     } @else {
-      <app-note-item [note]="note" (edit)="edit.emit($event)" (remove)="remove.emit($event)" />
+      <app-note-item [note]="note" [path]="pathFor(note)" (select)="select.emit($event)" (edit)="edit.emit($event)" (archive)="archive.emit($event)" (remove)="remove.emit($event)" />
     }
   } @empty {
     @if (filtered()) {

@@ -3,9 +3,10 @@
 <ui-card>
   <ui-col gap="2">
     <ui-row gap="3" align="start" justify="between" [wrap]="true">
-      <h2 class="title">{{ current.title }}</h2>
+      <h2 class="title"><ui-button variant="ghost" (clicked)="select.emit(current.id)">{{ current.title }}</ui-button></h2>
       <ui-row gap="2">
         <ui-button [ariaLabel]="'Edit ' + current.title" (clicked)="edit.emit(current.id)">Edit</ui-button>
+        @if (!current.isArchived) { <ui-button variant="secondary" (clicked)="archive.emit(current.id)">Archive</ui-button> }
         <ui-button
           variant="danger"
           [ariaLabel]="'Delete ' + current.title"
@@ -17,7 +18,12 @@
 
     @if (current.body) {
       <p class="body">{{ current.body }}</p>
+    } @else {
+      <p class="meta">No written note yet.</p>
     }
+
+    @if (current.isArchived) { <p class="meta">Archived</p> }
+    @if (path()) { <p class="meta">{{ path() }}</p> }
 
     <p class="meta">Updated {{ current.updatedAt | date: 'medium' }}</p>
   </ui-col>

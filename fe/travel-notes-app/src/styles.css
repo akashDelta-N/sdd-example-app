@@ -1,3 +1,5 @@
+@import 'ol/ol.css';
+
 /* Design tokens. Shared UI components must style themselves from these only. */
 :root {
   --color-bg: #f6f7f9;
