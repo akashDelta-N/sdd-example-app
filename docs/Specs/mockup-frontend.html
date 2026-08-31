@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Location-based Notes — Frontend Mockup</title>
+<style>
+  :root {
+    --bg: #0f1424;
+    --panel: #171d33;
+    --border: #2a3252;
+    --text: #eef0f6;
+    --muted: #9aa3c0;
+    --accent: #f2b134;
+    --archived: #6b7290;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, Segoe UI, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .toolbar {
+    display: flex;
+    gap: .5rem;
+    padding: .75rem 1rem;
+    background: #0a0e1c;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .toolbar span { color: var(--muted); font-size: .85rem; margin-right: .5rem; }
+  .toolbar button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: .4rem .8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .85rem;
+  }
+  .toolbar button.active { background: var(--accent); color: #1a1300; border-color: var(--accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: 640px;
+  }
+  .layout.mobile {
+    grid-template-columns: 1fr;
+  }
+  /* mobile order: map, tree, context */
+  .layout.mobile .panel-map { order: 1; }
+  .layout.mobile .panel-tree { order: 2; }
+  .layout.mobile .panel-context { order: 3; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    overflow: auto;
+  }
+  .panel h2 { margin: 0 0 .75rem; font-size: 1.1rem; }
+
+  /* Tree + search panel */
+  .search-box {
+    position: relative;
+    margin-bottom: .75rem;
+  }
+  .search-box input {
+    width: 100%;
+    padding: .5rem .6rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #0e1327;
+    color: var(--text);
+    font-size: .85rem;
+  }
+  .typeahead {
+    position: absolute;
+    top: 105%; left: 0; right: 0;
+    background: #0e1327;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    z-index: 5;
+    font-size: .85rem;
+  }
+  .typeahead div { padding: .4rem .6rem; cursor: pointer; }
+  .typeahead div:hover { background: var(--border); }
+  .typeahead .match { color: var(--accent); }
+
+  ul.tree { list-style: none; margin: 0; padding: 0; }
+  ul.tree ul { list-style: none; padding-left: 1rem; }
+  .tree li { margin: .15rem 0; }
+  .tree .node {
+    display: block;
+    padding: .3rem .5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: .9rem;
+  }
+  .tree .node:hover { background: #1f2745; }
+  .tree .node.selected { background: var(--accent); color: #1a1300; font-weight: 600; }
+  .tree .node.archived { color: var(--archived); font-style: italic; }
+  .add-root-btn {
+    margin-top: .75rem;
+    width: 2.2rem; height: 2.2rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1a1300;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  /* Map panel */
+  .panel-map { position: relative; padding: 0; }
+  .map-surface {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    background:
+      repeating-linear-gradient(0deg, #232c4d 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, #232c4d 0 1px, transparent 1px 40px),
+      #1a2140;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .map-tiles-note {
+    position: absolute; bottom: 6px; right: 10px;
+    font-size: .7rem; color: var(--muted);
+  }
+  .pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    text-align: center;
+    cursor: pointer;
+  }
+  .pin .dot {
+    width: 20px; height: 20px;
+    background: #e74c3c;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    margin: 0 auto;
+    border: 2px solid #fff;
+  }
+  .pin .label {
+    background: #0a0e1c;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: .75rem;
+    margin-top: 2px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+  .pin.new-pin .dot { background: var(--accent); }
+  .map-hint {
+    position: absolute; top: 8px; left: 10px;
+    font-size: .8rem; color: var(--muted);
+    background: rgba(10,14,28,.7);
+    padding: .3rem .6rem; border-radius: 6px;
+  }
+
+  /* Context panel (view / edit) */
+  .breadcrumb {
+    font-size: .8rem; color: var(--muted);
+    margin-bottom: .75rem;
+  }
+  .breadcrumb b { color: var(--text); }
+  .field { margin-bottom: .8rem; }
+  .field label { display: block; font-size: .75rem; color: var(--muted); margin-bottom: .25rem; }
+  .field input, .field textarea {
+    width: 100%;
+    padding: .5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #0e1327;
+    color: var(--text);
+    font-size: .85rem;
+    font-family: inherit;
+  }
+  .field .readonly { color: var(--muted); font-size: .85rem; }
+  .actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .actions button {
+    padding: .45rem .8rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: .85rem;
+    background: var(--panel);
+    color: var(--text);
+  }
+  .actions button.primary { background: var(--accent); color: #1a1300; border-color: var(--accent); }
+  .actions button.danger { border-color: #a33; color: #ff8080; }
+  .archived-banner {
+    background: #2a2f45; color: var(--archived);
+    padding: .5rem .7rem; border-radius: 6px;
+    font-size: .8rem; margin-bottom: .75rem;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span>Layout:</span>
+  <button id="btn-desktop" class="active">Desktop</button>
+  <button id="btn-mobile">Mobile</button>
+  <span style="margin-left:1rem;">State:</span>
+  <button id="btn-browse" class="active">Browse (show)</button>
+  <button id="btn-add">Add child</button>
+  <button id="btn-edit">Edit selected</button>
+</div>
+
+<div class="layout" id="layout">
+
+  <!-- LEFT: search + tree -->
+  <div class="panel panel-tree">
+    <h2>Locations</h2>
+    <div class="search-box">
+      <input id="search-input" placeholder="Search title or description…" value="asak">
+      <div class="typeahead" id="typeahead">
+        <div><span class="match">Asak</span>usa — historic district of Tokyo</div>
+        <div>Kappabashi (kitchen town) — <span class="match">Asak</span>usa</div>
+      </div>
+    </div>
+    <ul class="tree">
+      <li><span class="node">Japan</span>
+        <ul>
+          <li><span class="node">Kanto</span>
+            <ul>
+              <li><span class="node">Tokyo</span>
+                <ul>
+                  <li><span class="node selected" id="node-asakusa">Asakusa</span>
+                    <ul>
+                      <li><span class="node">Senso-ji</span></li>
+                      <li><span class="node">Kaminarimon</span></li>
+                      <li><span class="node archived">Kappabashi (archived)</span></li>
+                    </ul>
+                  </li>
+                  <li><span class="node">Ginza</span></li>
+                  <li><span class="node">Akihabara</span></li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <button class="add-root-btn" title="Add root location">+</button>
+  </div>
+
+  <!-- MIDDLE: map -->
+  <div class="panel panel-map">
+    <div class="map-surface" id="map-surface">
+      <div class="map-hint" id="map-hint">Children of "Asakusa" shown as pins</div>
+      <!-- pins for browse state: children of Asakusa -->
+      <div class="pin browse-pin" style="top: 40%; left: 45%;">
+        <div class="dot"></div><div class="label">Senso-ji</div>
+      </div>
+      <div class="pin browse-pin" style="top: 62%; left: 58%;">
+        <div class="dot"></div><div class="label">Kaminarimon</div>
+      </div>
+      <!-- pin for add/edit state: click-to-place -->
+      <div class="pin new-pin hidden" id="new-pin" style="top: 50%; left: 50%;">
+        <div class="dot"></div><div class="label">New pin (click map to move)</div>
+      </div>
+      <div class="map-tiles-note">© OpenStreetMap contributors (placeholder tiles)</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: context panel, swaps between view / add / edit -->
+  <div class="panel panel-context">
+
+    <div id="view-mode">
+      <div class="breadcrumb">Japan &gt; Kanto &gt; Tokyo &gt; <b>Asakusa</b></div>
+      <h2>Asakusa</h2>
+      <p style="color:var(--muted); font-size:.9rem;">
+        Historic district of Tokyo known for Senso-ji temple and Nakamise shopping street.
+      </p>
+      <div class="actions">
+        <button class="primary" id="to-edit">Edit</button>
+        <button id="to-add-child">Add child here</button>
+        <button class="danger" disabled title="Has children — archive/delete blocked">Archive</button>
+      </div>
+    </div>
+
+    <div id="add-mode" class="hidden">
+      <div class="breadcrumb">New location under: <b>Asakusa</b></div>
+      <h2>Add note-location</h2>
+      <div class="field">
+        <label>Title *</label>
+        <input placeholder="e.g. Kappabashi">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea rows="4" placeholder="Optional notes…"></textarea>
+      </div>
+      <div class="field">
+        <label>Position *</label>
+        <div class="readonly">lat: 35.7115, lng: 139.7966 — click the map to set/move</div>
+      </div>
+      <div class="actions">
+        <button class="primary">Save</button>
+        <button>Cancel</button>
+      </div>
+    </div>
+
+    <div id="edit-mode" class="hidden">
+      <div class="archived-banner hidden" id="archived-banner">
+        This location is archived. Saving without unarchiving keeps it archived.
+      </div>
+      <div class="breadcrumb">Japan &gt; Kanto &gt; Tokyo &gt; <b>Asakusa</b></div>
+      <h2>Edit note-location</h2>
+      <div class="field">
+        <label>Title *</label>
+        <input value="Asakusa">
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea rows="4">Historic district of Tokyo known for Senso-ji temple and Nakamise shopping street.</textarea>
+      </div>
+      <div class="field">
+        <label>Position *</label>
+        <div class="readonly">lat: 35.7118, lng: 139.7966 — click the map to set/move</div>
+      </div>
+      <div class="actions">
+        <button class="primary">Save</button>
+        <button>Cancel</button>
+        <button class="danger" id="toggle-archive">Archive</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const layout = document.getElementById('layout');
+  const mapHint = document.getElementById('map-hint');
+  const newPin = document.getElementById('new-pin');
+  const browsePins = document.querySelectorAll('.browse-pin');
+  const viewMode = document.getElementById('view-mode');
+  const addMode = document.getElementById('add-mode');
+  const editMode = document.getElementById('edit-mode');
+  const archivedBanner = document.getElementById('archived-banner');
+
+  function setActive(groupIds, activeId) {
+    groupIds.forEach(id => document.getElementById(id).classList.toggle('active', id === activeId));
+  }
+
+  document.getElementById('btn-desktop').onclick = () => {
+    layout.classList.remove('mobile');
+    setActive(['btn-desktop','btn-mobile'], 'btn-desktop');
+  };
+  document.getElementById('btn-mobile').onclick = () => {
+    layout.classList.add('mobile');
+    setActive(['btn-desktop','btn-mobile'], 'btn-mobile');
+  };
+
+  function showState(state) {
+    viewMode.classList.toggle('hidden', state !== 'browse');
+    addMode.classList.toggle('hidden', state !== 'add');
+    editMode.classList.toggle('hidden', state !== 'edit');
+    newPin.classList.toggle('hidden', state === 'browse');
+    browsePins.forEach(p => p.classList.toggle('hidden', state !== 'browse'));
+    mapHint.textContent = state === 'browse'
+      ? 'Children of "Asakusa" shown as pins'
+      : (state === 'add' ? 'Click anywhere to place the new location' : 'Click to move this location\'s pin');
+    archivedBanner.classList.add('hidden');
+    setActive(['btn-browse','btn-add','btn-edit'], state === 'browse' ? 'btn-browse' : (state === 'add' ? 'btn-add' : 'btn-edit'));
+  }
+
+  document.getElementById('btn-browse').onclick = () => showState('browse');
+  document.getElementById('btn-add').onclick = () => showState('add');
+  document.getElementById('btn-edit').onclick = () => showState('edit');
+  document.getElementById('to-edit').onclick = () => showState('edit');
+  document.getElementById('to-add-child').onclick = () => showState('add');
+
+  document.getElementById('toggle-archive').onclick = (e) => {
+    const archived = archivedBanner.classList.toggle('hidden');
+    e.target.textContent = archived ? 'Archive' : 'Unarchive';
+  };
+
+  document.getElementById('map-surface').addEventListener('click', (e) => {
+    if (editMode.classList.contains('hidden') && addMode.classList.contains('hidden')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const left = ((e.clientX - rect.left) / rect.width) * 100;
+    const top = ((e.clientY - rect.top) / rect.height) * 100;
+    newPin.style.left = left + '%';
+    newPin.style.top = top + '%';
+  });
+</script>
+</body>
+</html>
