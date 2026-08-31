@@ -1,0 +1,12 @@
+<ui-field label="Search locations">
+  <ui-text-input [formControl]="control()" type="search" placeholder="Search title or description" />
+</ui-field>
+@if (control().value.trim()) {
+  <div class="suggestions" role="list" aria-label="Location suggestions">
+    @for (result of results(); track result.note.id) {
+      <ui-button variant="ghost" (clicked)="selectResult.emit(result)">{{ result.note.title }}@if (result.ancestors.length) { <span class="path">{{ result.ancestors.map((item) => item.title).join(' / ') }}</span> }</ui-button>
+    } @empty {
+      <p>No matching locations.</p>
+    }
+  </div>
+}

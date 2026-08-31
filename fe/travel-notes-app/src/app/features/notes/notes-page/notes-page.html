@@ -1,36 +1,6 @@
-<ui-container size="md">
-  <ui-col gap="5">
-    <header>
-      <h1 class="page-title">Travel notes</h1>
-      <p class="tagline">Jot down what you want to remember from the road.</p>
-    </header>
-
-    <app-note-form (save)="onCreate($event)" />
-
-    <ui-field label="Search">
-      <ui-text-input
-        [formControl]="searchControl"
-        type="search"
-        placeholder="Search titles and notes…"
-      />
-    </ui-field>
-
-    @if (store.error(); as message) {
-      <p class="error" role="alert">{{ message }}</p>
-    }
-
-    @if (store.loading()) {
-      <p class="status">Loading…</p>
-    }
-
-    <app-note-list
-      [notes]="store.notes()"
-      [editingId]="store.editingId()"
-      [filtered]="store.search().length > 0"
-      (edit)="store.startEdit($event)"
-      (remove)="onRemove($event)"
-      (save)="onSave($event)"
-      (cancelEdit)="store.cancelEdit()"
-    />
-  </ui-col>
-</ui-container>
+<main class="workspace">
+  <ui-card class="tree-panel"><header><h1>Locations</h1><ui-icon-button ariaLabel="Add root location" (clicked)="store.startCreateRoot()">+</ui-icon-button></header><app-location-search [control]="searchControl" [results]="store.suggestions()" (selectResult)="onSearchResult($event)" /><app-location-tree [roots]="store.roots()" [childrenByParent]="store.childrenByParent()" [selectedId]="store.selectedId()" [expandedIds]="store.expandedIds()" (selectLocation)="onSelect($event)" (toggleLocation)="store.toggleExpanded($event)" /></ui-card>
+  <ui-card class="map-panel"><app-location-map [markers]="store.markers()" [selectedId]="store.selectedId()" [editing]="store.mode() !== 'view'" [draftCoordinates]="store.draftCoordinates()" (selectMarker)="onSelect($event)" (selectCoordinates)="store.setDraftCoordinates($event.latitude, $event.longitude)" /></ui-card>
+  <ui-card class="detail-panel"><app-location-detail [location]="store.selected()" [breadcrumb]="store.breadcrumb()" [mode]="store.mode()" [coordinates]="store.draftCoordinates()" (edit)="store.startEdit()" (addChild)="store.startCreateChild()" (save)="store.saveLocation($event)" (cancel)="store.cancelEdit()" /></ui-card>
+</main>
+@if (store.error(); as message) { <p class="error" role="alert">{{ message }}</p> }

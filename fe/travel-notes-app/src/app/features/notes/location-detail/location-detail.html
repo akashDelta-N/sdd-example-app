@@ -1,0 +1,21 @@
+@if (editing) {
+  <div class="breadcrumb">
+    @if (mode() === 'create-child') { New location under {{ location()?.title }} }
+    @else if (mode() === 'edit') { Editing {{ location()?.title }} }
+    @else { New root location }
+  </div>
+  <h2>{{ heading }}</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <ui-field label="Title" [required]="true"><ui-text-input formControlName="title" placeholder="e.g. Asakusa" /></ui-field>
+    <ui-field label="Description"><ui-textarea formControlName="description" [rows]="4" placeholder="Optional notes" /></ui-field>
+    <p class="coordinates">@if (coordinates(); as point) { lat: {{ point.latitude | number:'1.4-6' }}, lng: {{ point.longitude | number:'1.4-6' }} } @else { Click the map to choose a position. }</p>
+    <div class="actions"><ui-button variant="primary" type="submit">Save</ui-button><ui-button variant="ghost" (clicked)="cancel.emit()">Cancel</ui-button></div>
+  </form>
+} @else if (location(); as current) {
+  <div class="breadcrumb">@for (item of breadcrumb(); track item.id; let last = $last) { <span [class.current]="last">{{ item.title }}</span>@if (!last) { <span> / </span> } }</div>
+  <h2>{{ current.title }}</h2>
+  @if (current.description) { <p>{{ current.description }}</p> } @else { <p class="muted">No note content yet.</p> }
+  <div class="actions"><ui-button variant="primary" (clicked)="edit.emit()">Edit</ui-button><ui-button (clicked)="addChild.emit()">Add child</ui-button></div>
+} @else {
+  <ui-empty-state heading="Choose a location" message="Select a location from the tree or map, or add a root location." />
+}

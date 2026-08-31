@@ -1,23 +1,38 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Note, NoteInput } from '../models/note';
+import { NoteLocation, NoteLocationInput, SearchResult } from '../models/note';
 
 @Injectable({ providedIn: 'root' })
 export class NotesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/notes';
 
-  list(search?: string): Observable<Note[]> {
-    const params = search?.trim() ? new HttpParams().set('search', search.trim()) : undefined;
-    return this.http.get<Note[]>(this.baseUrl, { params });
+  roots(): Observable<NoteLocation[]> {
+    return this.http.get<NoteLocation[]>(this.baseUrl);
   }
 
-  create(input: NoteInput): Observable<Note> {
-    return this.http.post<Note>(this.baseUrl, input);
+  children(parentId: string): Observable<NoteLocation[]> {
+    return this.http.get<NoteLocation[]>(this.baseUrl, {
+      params: new HttpParams().set('parentId', parentId),
+    });
   }
 
-  update(id: string, input: NoteInput): Observable<void> {
+  get(id: string): Observable<NoteLocation> {
+    return this.http.get<NoteLocation>(`${this.baseUrl}/${id}`);
+  }
+
+  search(term: string): Observable<SearchResult[]> {
+    return this.http.get<SearchResult[]>(`${this.baseUrl}/search`, {
+      params: new HttpParams().set('term', term),
+    });
+  }
+
+  create(input: NoteLocationInput): Observable<NoteLocation> {
+    return this.http.post<NoteLocation>(this.baseUrl, input);
+  }
+
+  update(id: string, input: NoteLocationInput): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}`, input);
   }
 

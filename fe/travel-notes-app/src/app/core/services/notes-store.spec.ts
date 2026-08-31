@@ -1,95 +1,58 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { Note } from '../models/note';
+import { NoteLocation } from '../models/note';
 import { NotesApi } from './notes-api';
 import { NotesStore } from './notes-store';
 
-function makeNote(id: number, title: string): Note {
-  return {
-    id,
-    title,
-    body: 'body',
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-  };
+function location(id: string, parentId: string | null = null): NoteLocation {
+  return { id, parentId, title: id, description: '', latitude: 35, longitude: 139, isArchived: false, childCount: 0, createdAt: '', updatedAt: '' };
 }
 
 describe('NotesStore', () => {
-  let api: {
-    list: ReturnType<typeof vi.fn>;
-    create: ReturnType<typeof vi.fn>;
-    update: ReturnType<typeof vi.fn>;
-    remove: ReturnType<typeof vi.fn>;
-  };
+  let api: { roots: ReturnType<typeof vi.fn>; children: ReturnType<typeof vi.fn>; get: ReturnType<typeof vi.fn>; search: ReturnType<typeof vi.fn> };
   let store: NotesStore;
 
   beforeEach(() => {
-    api = {
-      list: vi.fn(() => of([makeNote(1, 'Lisbon')])),
-      create: vi.fn(() => of(makeNote(2, 'Porto'))),
-      update: vi.fn(() => of(undefined)),
-      remove: vi.fn(() => of(undefined)),
-    };
-
-    TestBed.configureTestingModule({
-      providers: [{ provide: NotesApi, useValue: api }],
-    });
-
+    const root = location('root');
+    const child = location('child', 'root');
+    api = { roots: vi.fn(() => of([root])), children: vi.fn(() => of([child])), get: vi.fn((id: string) => of(id === 'root' ? root : child)), search: vi.fn(() => of([{ note: child, ancestors: [root] }])) };
+    TestBed.configureTestingModule({ providers: [{ provide: NotesApi, useValue: api }] });
     store = TestBed.inject(NotesStore);
   });
 
-  it('loads notes and clears the loading flag', async () => {
+  it('loads root locations for the initial map context', async () => {
     await store.load();
-
-    expect(store.notes()).toHaveLength(1);
-    expect(store.loading()).toBe(false);
-    expect(store.error()).toBeNull();
+    expect(store.roots()).toHaveLength(1);
+    expect(store.markers()[0].id).toBe('root');
   });
 
-  it('surfaces an error when loading fails', async () => {
-    api.list.mockReturnValueOnce(throwError(() => new Error('offline')));
-
+  it('selects a location and shows its direct children as markers', async () => {
     await store.load();
+    await store.select('root');
+    expect(store.selectedId()).toBe('root');
+    expect(store.markers()[0].id).toBe('child');
+    expect(store.breadcrumb().map((item) => item.id)).toEqual(['root']);
+  });
 
+  it('shows the selected location marker when it has no children', async () => {
+    api.children.mockReturnValue(of([]));
+    await store.select('child');
+    expect(store.markers()[0].id).toBe('child');
+  });
+
+  it('surfaces an error when roots cannot load', async () => {
+    api.roots.mockReturnValue(throwError(() => new Error('offline')));
+    await store.load();
     expect(store.error()).toBeTruthy();
-    expect(store.loading()).toBe(false);
   });
 
-  it('passes the current search term to the api', async () => {
-    store.setSearch('lisbon');
-    await store.load();
-
-    expect(api.list).toHaveBeenCalledWith('lisbon');
-  });
-
-  it('reloads the list after creating a note', async () => {
-    await store.create({ title: 'Porto', body: '' });
-
-    expect(api.create).toHaveBeenCalledWith({ title: 'Porto', body: '' });
-    expect(api.list).toHaveBeenCalled();
-  });
-
-  it('leaves edit mode after a successful update', async () => {
-    store.startEdit(1);
-    await store.update(1, { title: 'Lisbon revised', body: '' });
-
-    expect(api.update).toHaveBeenCalledWith(1, { title: 'Lisbon revised', body: '' });
-    expect(store.editingId()).toBeNull();
-  });
-
-  it('leaves edit mode when the edited note is deleted', async () => {
-    store.startEdit(1);
-    await store.remove(1);
-
-    expect(api.remove).toHaveBeenCalledWith(1);
-    expect(store.editingId()).toBeNull();
-  });
-
-  it('reports an error when deleting fails', async () => {
-    api.remove.mockReturnValueOnce(throwError(() => new Error('boom')));
-
-    await store.remove(1);
-
-    expect(store.error()).toBeTruthy();
+  it('debounces type-ahead suggestions and preserves navigation selection', async () => {
+    vi.useFakeTimers();
+    store.setSearchTerm('child');
+    await vi.advanceTimersByTimeAsync(250);
+    expect(api.search).toHaveBeenCalledWith('child');
+    expect(store.suggestions()[0].note.id).toBe('child');
+    expect(store.selectedId()).toBeNull();
+    vi.useRealTimers();
   });
 });

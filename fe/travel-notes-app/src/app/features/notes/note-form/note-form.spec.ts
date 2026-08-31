@@ -39,7 +39,7 @@ describe('NoteForm', () => {
 
     submit();
 
-    expect(saved).toEqual([{ title: 'Lisbon', body: 'Tram 28' }]);
+    expect(saved).toEqual([{ title: 'Lisbon', description: 'Tram 28', latitude: 0, longitude: 0 }]);
   });
 
   it('clears itself after creating a note', async () => {
@@ -54,9 +54,14 @@ describe('NoteForm', () => {
 
   it('pre-fills and keeps the values when editing', async () => {
     fixture.componentRef.setInput('note', {
-      id: 1,
+      id: 'portugal',
       title: 'Porto',
-      body: 'Port wine',
+      description: 'Port wine',
+      latitude: 41,
+      longitude: -8,
+      parentId: null,
+      isArchived: false,
+      childCount: 0,
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     });
@@ -67,7 +72,7 @@ describe('NoteForm', () => {
     submit();
     await fixture.whenStable();
 
-    expect(saved).toEqual([{ title: 'Porto', body: 'Port wine' }]);
+    expect(saved).toEqual([{ title: 'Porto', description: 'Port wine', latitude: 0, longitude: 0 }]);
     expect(fixture.nativeElement.querySelector('ui-text-input input').value).toBe('Porto');
   });
 });

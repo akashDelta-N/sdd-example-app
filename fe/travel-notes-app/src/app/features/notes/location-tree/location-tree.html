@@ -1,0 +1,23 @@
+<ng-template #branch let-items>
+  <ul class="tree-list">
+    @for (location of items; track location.id) {
+      <li>
+        <div class="tree-node" [class.selected]="selectedId() === location.id" [class.archived]="location.isArchived">
+          @if (location.childCount > 0) {
+            <ui-icon-button [ariaLabel]="(isExpanded(location) ? 'Collapse ' : 'Expand ') + location.title" (clicked)="toggleLocation.emit(location)">
+              {{ isExpanded(location) ? '−' : '+' }}
+            </ui-icon-button>
+          } @else {
+            <span class="tree-spacer"></span>
+          }
+          <button class="location-select" type="button" (click)="selectLocation.emit(location.id)">{{ location.title }}</button>
+        </div>
+        @if (isExpanded(location)) {
+          <ng-container *ngTemplateOutlet="branch; context: { $implicit: children(location) }" />
+        }
+      </li>
+    }
+  </ul>
+</ng-template>
+
+<ng-container *ngTemplateOutlet="branch; context: { $implicit: roots() }" />

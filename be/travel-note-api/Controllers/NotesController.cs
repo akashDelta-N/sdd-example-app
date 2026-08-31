@@ -11,17 +11,13 @@ namespace travel_note_api.Controllers;
 public class NotesController(NotesDbContext db) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<NoteDto>>> GetAll([FromQuery] string? search, CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<NoteDto>>> GetAll([FromQuery] Guid? parentId, CancellationToken ct)
     {
         var query = db.Notes.AsNoTracking();
 
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            // SQLite LIKE is case-insensitive for ASCII; escape user-supplied wildcards.
-            var pattern = $"%{search.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
-            query = query.Where(n =>
-                EF.Functions.Like(n.Title, pattern, "\\") || EF.Functions.Like(n.Description, pattern, "\\"));
-        }
+        query = parentId is null
+            ? query.Where(n => n.ParentId == null)
+            : query.Where(n => n.ParentId == parentId);
 
         var notes = await query
             .OrderByDescending(n => n.UpdatedAt)
@@ -40,9 +36,38 @@ public class NotesController(NotesDbContext db) : ControllerBase
         return note is null ? NotFound() : Ok(ToDto(note));
     }
 
+    [HttpGet("search")]
+    public async Task<ActionResult<IEnumerable<SearchResultDto>>> Search([FromQuery] string? term, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(term))
+        {
+            return Ok(Array.Empty<SearchResultDto>());
+        }
+
+        // SQLite LIKE is case-insensitive for ASCII; escape user-supplied wildcards.
+        var pattern = $"%{term.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
+        var matches = await db.Notes.AsNoTracking()
+            .Where(n => EF.Functions.Like(n.Title, pattern, "\\") || EF.Functions.Like(n.Description, pattern, "\\"))
+            .OrderBy(n => n.Title)
+            .ToListAsync(ct);
+
+        var results = new List<SearchResultDto>(matches.Count);
+        foreach (var match in matches)
+        {
+            results.Add(new SearchResultDto(ToDto(match), await GetAncestors(match.ParentId, ct)));
+        }
+
+        return Ok(results);
+    }
+
     [HttpPost]
     public async Task<ActionResult<NoteDto>> Create([FromBody] NoteInput input, CancellationToken ct)
     {
+        if (input.ParentId is not null && !await db.Notes.AnyAsync(n => n.Id == input.ParentId, ct))
+        {
+            return BadRequest("The selected parent location does not exist.");
+        }
+
         var now = DateTime.UtcNow;
         var note = new Note
         {
@@ -69,6 +94,11 @@ public class NotesController(NotesDbContext db) : ControllerBase
         if (note is null)
         {
             return NotFound();
+        }
+
+        if (input.ParentId != note.ParentId)
+        {
+            return BadRequest("A note-location cannot be moved to a different parent.");
         }
 
         note.Title = input.Title.Trim();
@@ -99,4 +129,23 @@ public class NotesController(NotesDbContext db) : ControllerBase
     private static NoteDto ToDto(Note n) => new(
         n.Id, n.Title, n.Description, n.Latitude, n.Longitude, n.ParentId,
         n.IsArchived, n.Children.Count, n.CreatedAt, n.UpdatedAt);
+
+    private async Task<IReadOnlyList<AncestorDto>> GetAncestors(Guid? parentId, CancellationToken ct)
+    {
+        var ancestors = new List<AncestorDto>();
+        while (parentId is not null)
+        {
+            var parent = await db.Notes.AsNoTracking()
+                .Where(n => n.Id == parentId)
+                .Select(n => new { n.Id, n.Title, n.ParentId })
+                .FirstOrDefaultAsync(ct);
+            if (parent is null)
+            {
+                break;
+            }
+            ancestors.Insert(0, new AncestorDto(parent.Id, parent.Title));
+            parentId = parent.ParentId;
+        }
+        return ancestors;
+    }
 }
