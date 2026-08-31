@@ -23,22 +23,22 @@ description: "Implementation tasks for Location-Based Notes"
 
 **Purpose**: Prepare the required map dependency and local schema-reset workflow.
 
-- [ ] T001 Add the `ol` OpenLayers package with pnpm, using its bundled TypeScript types, in `fe/travel-notes-app/package.json` and `fe/travel-notes-app/pnpm-lock.yaml`
-- [ ] T002 Record the required pre-run deletion of the existing SQLite database in `docs/development.md`
-- [ ] T003 Include the OpenLayers base stylesheet in `fe/travel-notes-app/angular.json`
+- [X] T001 Add the `ol` OpenLayers package with pnpm, using its bundled TypeScript types, in `fe/travel-notes-app/package.json` and `fe/travel-notes-app/pnpm-lock.yaml`
+- [X] T002 Record the required pre-run deletion of the existing SQLite database in `docs/development.md`
+- [X] T003 Include the OpenLayers base stylesheet in `fe/travel-notes-app/angular.json`
 
 ## Phase 2: Foundational
 
 **Purpose**: Establish the GUID-based hierarchy schema, shared frontend model, API boundary, and reusable visual primitives. Blocks all user stories.
 
-- [ ] T004 Replace the flat integer-key note model with a GUID-keyed self-referencing note-location model in `be/travel-note-api/Models/Note.cs`
-- [ ] T005 Configure the GUID primary key, optional parent relationship, coordinates, archive state, indexes, and UTC timestamps in `be/travel-note-api/Data/NotesDbContext.cs`
-- [ ] T006 Replace note DTO/input definitions with GUID-aware note-location DTOs, validation attributes, and search-result shapes in `be/travel-note-api/Dtos/NoteDtos.cs`
-- [ ] T007 Create `be/travel-note-api.Tests/travel-note-api.Tests.csproj`, reference `be/travel-note-api/travel-note-api.csproj`, and add the test-host dependencies
-- [ ] T008 [P] Replace the flat note TypeScript interfaces with `NoteLocation`, `NoteLocationInput`, marker, and search-result interfaces in `fe/travel-notes-app/src/app/core/models/note.ts`
-- [ ] T009 [P] Add any missing token-driven shared primitives needed by the mockup, such as a compact icon button or toggle control, under `fe/travel-notes-app/src/app/shared/components/` and export them from `fe/travel-notes-app/src/app/shared/components/index.ts`
-- [ ] T010 Extend global design tokens only as needed for the mockup's dark panel, gold selection, muted archive, and responsive workspace styling in `fe/travel-notes-app/src/styles.css`
-- [ ] T011 Update route-level app shell sizing and background behavior for the map workspace in `fe/travel-notes-app/src/app/app.css`
+- [X] T004 Replace the flat integer-key note model with a GUID-keyed self-referencing note-location model in `be/travel-note-api/Models/Note.cs`
+- [X] T005 Configure the GUID primary key, optional parent relationship, coordinates, archive state, indexes, and UTC timestamps in `be/travel-note-api/Data/NotesDbContext.cs`
+- [X] T006 Replace note DTO/input definitions with GUID-aware note-location DTOs, validation attributes, and search-result shapes in `be/travel-note-api/Dtos/NoteDtos.cs`
+- [X] T007 Create `be/travel-note-api.Tests/travel-note-api.Tests.csproj`, reference `be/travel-note-api/travel-note-api.csproj`, and add the test-host dependencies
+- [X] T008 [P] Replace the flat note TypeScript interfaces with `NoteLocation`, `NoteLocationInput`, marker, and search-result interfaces in `fe/travel-notes-app/src/app/core/models/note.ts`
+- [X] T009 [P] Add any missing token-driven shared primitives needed by the mockup, such as a compact icon button or toggle control, under `fe/travel-notes-app/src/app/shared/components/` and export them from `fe/travel-notes-app/src/app/shared/components/index.ts`
+- [X] T010 Extend global design tokens only as needed for the mockup's dark panel, gold selection, muted archive, and responsive workspace styling in `fe/travel-notes-app/src/styles.css`
+- [X] T011 Update route-level app shell sizing and background behavior for the map workspace in `fe/travel-notes-app/src/app/app.css`
 
 **Checkpoint**: Delete the pre-feature `notes.db`, start the backend, and confirm a new database can be created with GUID note-location schema.
 

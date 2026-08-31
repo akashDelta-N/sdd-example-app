@@ -20,19 +20,21 @@ public class NotesController(NotesDbContext db) : ControllerBase
             // SQLite LIKE is case-insensitive for ASCII; escape user-supplied wildcards.
             var pattern = $"%{search.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%";
             query = query.Where(n =>
-                EF.Functions.Like(n.Title, pattern, "\\") || EF.Functions.Like(n.Body, pattern, "\\"));
+                EF.Functions.Like(n.Title, pattern, "\\") || EF.Functions.Like(n.Description, pattern, "\\"));
         }
 
         var notes = await query
             .OrderByDescending(n => n.UpdatedAt)
-            .Select(n => new NoteDto(n.Id, n.Title, n.Body, n.CreatedAt, n.UpdatedAt))
+            .Select(n => new NoteDto(
+                n.Id, n.Title, n.Description, n.Latitude, n.Longitude, n.ParentId,
+                n.IsArchived, n.Children.Count, n.CreatedAt, n.UpdatedAt))
             .ToListAsync(ct);
 
         return Ok(notes);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<NoteDto>> GetById(int id, CancellationToken ct)
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<NoteDto>> GetById(Guid id, CancellationToken ct)
     {
         var note = await db.Notes.AsNoTracking().FirstOrDefaultAsync(n => n.Id == id, ct);
         return note is null ? NotFound() : Ok(ToDto(note));
@@ -44,8 +46,12 @@ public class NotesController(NotesDbContext db) : ControllerBase
         var now = DateTime.UtcNow;
         var note = new Note
         {
+            Id = Guid.NewGuid(),
             Title = input.Title.Trim(),
-            Body = input.Body,
+            Description = input.Description,
+            Latitude = input.Latitude,
+            Longitude = input.Longitude,
+            ParentId = input.ParentId,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -56,8 +62,8 @@ public class NotesController(NotesDbContext db) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = note.Id }, ToDto(note));
     }
 
-    [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] NoteInput input, CancellationToken ct)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] NoteInput input, CancellationToken ct)
     {
         var note = await db.Notes.FirstOrDefaultAsync(n => n.Id == id, ct);
         if (note is null)
@@ -66,15 +72,17 @@ public class NotesController(NotesDbContext db) : ControllerBase
         }
 
         note.Title = input.Title.Trim();
-        note.Body = input.Body;
+        note.Description = input.Description;
+        note.Latitude = input.Latitude;
+        note.Longitude = input.Longitude;
         note.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
         return NoContent();
     }
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var note = await db.Notes.FirstOrDefaultAsync(n => n.Id == id, ct);
         if (note is null)
@@ -88,5 +96,7 @@ public class NotesController(NotesDbContext db) : ControllerBase
         return NoContent();
     }
 
-    private static NoteDto ToDto(Note n) => new(n.Id, n.Title, n.Body, n.CreatedAt, n.UpdatedAt);
+    private static NoteDto ToDto(Note n) => new(
+        n.Id, n.Title, n.Description, n.Latitude, n.Longitude, n.ParentId,
+        n.IsArchived, n.Children.Count, n.CreatedAt, n.UpdatedAt);
 }

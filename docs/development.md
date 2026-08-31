@@ -20,8 +20,10 @@ dotnet run --project be/travel-note-api/travel-note-api.csproj --launch-profile 
 - OpenAPI docs are only mapped when `ASPNETCORE_ENVIRONMENT=Development`
   (default for these launch profiles), at `/openapi`.
 - The SQLite file `notes.db` is created automatically on first run
-  (`EnsureCreated()` — see [data-model.md](data-model.md)). Delete it to reset
-  all data.
+  (`EnsureCreated()` — see [data-model.md](data-model.md)). Before running the
+  location-based notes version, stop the backend and delete its existing
+  `notes.db`; `EnsureCreated()` cannot update the earlier flat-notes schema.
+  This resets all local data.
 
 ## Run the frontend
 

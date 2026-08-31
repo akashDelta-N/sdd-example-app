@@ -32,11 +32,11 @@ export class NotesPage implements OnInit {
     void this.store.create(input);
   }
 
-  protected onSave({ id, input }: { id: number; input: NoteInput }): void {
+  protected onSave({ id, input }: { id: string; input: NoteInput }): void {
     void this.store.update(id, input);
   }
 
-  protected onRemove(id: number): void {
+  protected onRemove(id: string): void {
     void this.store.remove(id);
   }
 }

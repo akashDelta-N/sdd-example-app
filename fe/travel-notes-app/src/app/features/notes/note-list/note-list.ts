@@ -12,11 +12,11 @@ import { NoteItem } from '../note-item/note-item';
 })
 export class NoteList {
   readonly notes = input.required<Note[]>();
-  readonly editingId = input<number | null>(null);
+  readonly editingId = input<string | null>(null);
   readonly filtered = input(false);
 
-  readonly edit = output<number>();
-  readonly remove = output<number>();
-  readonly save = output<{ id: number; input: NoteInput }>();
+  readonly edit = output<string>();
+  readonly remove = output<string>();
+  readonly save = output<{ id: string; input: NoteInput }>();
   readonly cancelEdit = output<void>();
 }

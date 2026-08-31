@@ -13,7 +13,7 @@ export class NotesStore {
   readonly search = signal('');
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly editingId = signal<number | null>(null);
+  readonly editingId = signal<string | null>(null);
 
   constructor() {
     this.searchTerm$
@@ -42,19 +42,19 @@ export class NotesStore {
     await this.mutate(() => firstValueFrom(this.api.create(input)), 'Could not save the note.');
   }
 
-  async update(id: number, input: NoteInput): Promise<void> {
+  async update(id: string, input: NoteInput): Promise<void> {
     await this.mutate(() => firstValueFrom(this.api.update(id, input)), 'Could not save the note.');
     this.editingId.set(null);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     await this.mutate(() => firstValueFrom(this.api.remove(id)), 'Could not delete the note.');
     if (this.editingId() === id) {
       this.editingId.set(null);
     }
   }
 
-  startEdit(id: number): void {
+  startEdit(id: string): void {
     this.editingId.set(id);
   }
 

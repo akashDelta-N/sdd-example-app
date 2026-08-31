@@ -15,8 +15,8 @@
       </ui-row>
     </ui-row>
 
-    @if (current.body) {
-      <p class="body">{{ current.body }}</p>
+    @if (current.description) {
+      <p class="body">{{ current.description }}</p>
     }
 
     <p class="meta">Updated {{ current.updatedAt | date: 'medium' }}</p>

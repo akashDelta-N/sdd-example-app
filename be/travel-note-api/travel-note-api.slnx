@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="travel-note-api.csproj" />
+  <Project Path="..\travel-note-api.Tests\travel-note-api.Tests.csproj" />
 </Solution>

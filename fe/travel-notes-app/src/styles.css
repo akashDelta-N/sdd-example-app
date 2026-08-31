@@ -1,17 +1,18 @@
 /* Design tokens. Shared UI components must style themselves from these only. */
 :root {
-  --color-bg: #f6f7f9;
-  --color-surface: #ffffff;
-  --color-border: #dfe3e8;
-  --color-border-strong: #c3cad2;
-  --color-text: #1c2430;
-  --color-text-muted: #5f6b7a;
-  --color-primary: #2f6df6;
-  --color-primary-hover: #2559d0;
-  --color-primary-contrast: #ffffff;
-  --color-danger: #d3392c;
-  --color-danger-hover: #b32a1f;
-  --color-focus: #9ec1ff;
+  --color-bg: #0f1424;
+  --color-surface: #171d33;
+  --color-border: #2a3252;
+  --color-border-strong: #445071;
+  --color-text: #eef0f6;
+  --color-text-muted: #9aa3c0;
+  --color-primary: #f2b134;
+  --color-primary-hover: #ffc94d;
+  --color-primary-contrast: #1a1300;
+  --color-danger: #ff8080;
+  --color-danger-hover: #a33;
+  --color-focus: #ffe199;
+  --color-archived: #6b7290;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -22,7 +23,7 @@
 
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-lg: 8px;
 
   --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-size-sm: 0.8125rem;

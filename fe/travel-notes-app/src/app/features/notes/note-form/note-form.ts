@@ -19,13 +19,13 @@ export class NoteForm {
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
-    body: [''],
+    description: [''],
   });
 
   constructor() {
     effect(() => {
       const note = this.note();
-      this.form.reset({ title: note?.title ?? '', body: note?.body ?? '' });
+      this.form.reset({ title: note?.title ?? '', description: note?.description ?? '' });
     });
   }
 
@@ -47,11 +47,11 @@ export class NoteForm {
       return;
     }
 
-    const { title, body } = this.form.getRawValue();
-    this.save.emit({ title: title.trim(), body });
+    const { title, description } = this.form.getRawValue();
+    this.save.emit({ title: title.trim(), description, latitude: 0, longitude: 0 });
 
     if (!this.isEditing) {
-      this.form.reset({ title: '', body: '' });
+      this.form.reset({ title: '', description: '' });
     }
   }
 }

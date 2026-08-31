@@ -18,9 +18,16 @@ public class NotesDbContext(DbContextOptions<NotesDbContext> options) : DbContex
         var note = modelBuilder.Entity<Note>();
         note.HasKey(n => n.Id);
         note.Property(n => n.Title).IsRequired().HasMaxLength(200);
-        note.Property(n => n.Body).IsRequired();
+        note.Property(n => n.Description).IsRequired();
+        note.Property(n => n.Latitude).HasPrecision(9, 6);
+        note.Property(n => n.Longitude).HasPrecision(9, 6);
+        note.HasOne(n => n.Parent)
+            .WithMany(n => n.Children)
+            .HasForeignKey(n => n.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
         note.Property(n => n.CreatedAt).HasConversion(utc);
         note.Property(n => n.UpdatedAt).HasConversion(utc);
         note.HasIndex(n => n.UpdatedAt);
+        note.HasIndex(n => n.ParentId);
     }
 }

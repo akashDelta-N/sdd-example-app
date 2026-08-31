@@ -17,11 +17,11 @@ export class NotesApi {
     return this.http.post<Note>(this.baseUrl, input);
   }
 
-  update(id: number, input: NoteInput): Observable<void> {
+  update(id: string, input: NoteInput): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${id}`, input);
   }
 
-  remove(id: number): Observable<void> {
+  remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }
