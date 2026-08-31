@@ -2,26 +2,37 @@
 
 ## `Note` entity
 
+`Note` is a note-location: one record represents both travel-note content and a node in a user-defined location hierarchy.
+
 | Field | Type | Notes |
 |---|---|---|
-| `Id` | `int` | Primary key, auto-increment |
-| `Title` | `string` | Required, max 200 chars, never null (`= string.Empty` default) |
-| `Body` | `string` | Required column (defaults to empty string), max 20000 chars enforced at the DTO/validation layer |
+| `Id` | `Guid` | Primary key, generated on creation |
+| `Title` | `string` | Required, trimmed, max 200 characters |
+| `Description` | `string` | Optional content, stored as an empty string, max 20,000 characters |
+| `Latitude` | `decimal` | Required, -90 through 90 |
+| `Longitude` | `decimal` | Required, -180 through 180 |
+| `ParentId` | `Guid?` | Optional self-reference, chosen at creation and immutable afterward |
+| `IsArchived` | `bool` | Defaults to false; an archived childless item may be deleted |
 | `CreatedAt` | `DateTime` | UTC, set once at creation |
-| `UpdatedAt` | `DateTime` | UTC, updated on every write; indexed for sort performance |
+| `UpdatedAt` | `DateTime` | UTC, updated on every successful update |
 
 ```mermaid
 erDiagram
-    NOTE {
-        int Id PK
-        string Title
-        string Body
-        DateTime CreatedAt
-        DateTime UpdatedAt
-    }
+  NOTE ||--o{ NOTE : "parent of"
+  NOTE {
+    Guid Id PK
+    string Title
+    string Description
+    decimal Latitude
+    decimal Longitude
+    Guid ParentId FK
+    bool IsArchived
+    DateTime CreatedAt
+    DateTime UpdatedAt
+  }
 ```
 
-There is only one entity — no relationships, no foreign keys.
+Multiple roots are allowed. A parent can contain note content and children. Coordinates never determine the parent relationship.
 
 ## Persistence
 
@@ -40,14 +51,19 @@ There is only one entity — no relationships, no foreign keys.
   write and calls `DateTime.SpecifyKind(v, DateTimeKind.Utc)` on read, so JSON
   serialization always includes the trailing `Z`. Without this, timestamps
   would round-trip as unspecified-kind and lose the `Z` suffix.
-- **Index**: `UpdatedAt` is indexed to support the default descending sort used
-  by `GET /api/notes`.
+- **Indexes**: `UpdatedAt` supports the default descending listing order; `ParentId` supports direct-child lookup.
 - **Query pattern**: reads use `AsNoTracking()` since the API is stateless
   request-per-call and never needs to mutate a previously-read tracked entity.
 
+## Lifecycle
+
+- Active childless items may be archived through an update.
+- Archived items may be restored through the edit form.
+- Only archived childless items may be deleted.
+- Parents with children cannot be archived or deleted; the API rejects the action even if the UI is stale.
+
 ## Frontend model mirror
 
-The Angular app's `Note`/`NoteInput` interfaces
-(`fe/travel-notes-app/src/app/core/models/note.ts`) intentionally mirror the
-backend DTOs field-for-field (including `createdAt`/`updatedAt` as ISO strings,
-not `Date` objects) — keep both in sync if the API shape changes.
+The Angular app's `NoteLocation`/`NoteLocationInput` interfaces in
+`fe/travel-notes-app/src/app/core/models/note.ts` mirror the backend DTOs,
+including GUIDs as strings and UTC timestamps as ISO strings.

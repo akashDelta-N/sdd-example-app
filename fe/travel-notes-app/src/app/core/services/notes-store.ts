@@ -94,6 +94,7 @@ export class NotesStore {
     this.error.set(null);
     try {
       const created = await firstValueFrom(this.api.create(input));
+      if (input.parentId) this.invalidateChildren(input.parentId);
       await this.load();
       await this.select(created.id);
       this.cancelEdit();
@@ -106,6 +107,7 @@ export class NotesStore {
     this.error.set(null);
     try {
       await firstValueFrom(this.api.update(id, input));
+      if (input.parentId) this.invalidateChildren(input.parentId);
       await this.load();
       await this.select(id);
       this.cancelEdit();
@@ -140,7 +142,7 @@ export class NotesStore {
     this.draftCoordinates.set({ latitude, longitude });
   }
 
-  async saveLocation(values: { title: string; description: string }): Promise<void> {
+  async saveLocation(values: { title: string; description: string; isArchived: boolean }): Promise<void> {
     const coordinates = this.draftCoordinates();
     if (!coordinates) {
       this.error.set('Choose a position on the map before saving.');
@@ -162,6 +164,24 @@ export class NotesStore {
     this.draftCoordinates.set(null);
   }
 
+  async deleteSelected(): Promise<void> {
+    const selected = this.selected();
+    if (!selected) return;
+    this.error.set(null);
+    try {
+      await firstValueFrom(this.api.remove(selected.id));
+      const parentId = selected.parentId;
+      if (parentId) this.invalidateChildren(parentId);
+      this.selected.set(null);
+      this.selectedId.set(null);
+      this.cancelEdit();
+      await this.load();
+      if (parentId) await this.select(parentId);
+    } catch {
+      this.error.set('Could not delete this location. It may still have children or need archiving first.');
+    }
+  }
+
   private async mutate(action: () => Promise<unknown>, errorMessage: string): Promise<void> {
     this.error.set(null);
     try {
@@ -178,6 +198,13 @@ export class NotesStore {
     }
     const children = await firstValueFrom(this.api.children(parentId));
     this.childrenByParent.update((entries) => ({ ...entries, [parentId]: children }));
+  }
+
+  private invalidateChildren(parentId: string): void {
+    this.childrenByParent.update((entries) => {
+      const { [parentId]: _, ...remaining } = entries;
+      return remaining;
+    });
   }
 
   private async loadSuggestions(term: string): Promise<void> {

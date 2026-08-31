@@ -50,7 +50,7 @@ API are only wired together via the Angular CLI dev proxy (see
   UI primitives). See [frontend.md](frontend.md) for details.
 - **State management**: Angular signals, not NgRx/Redux — see `NotesStore`.
 
-## Request flow (list notes example)
+## Request flow (type-ahead search example)
 
 ```mermaid
 sequenceDiagram
@@ -61,17 +61,19 @@ sequenceDiagram
     participant C as NotesController
     participant D as SQLite (EF Core)
 
-    U->>P: types in search box
-    P->>S: setSearch(term)
+    U->>P: types in location search box
+    P->>S: setSearchTerm(term)
     S->>S: debounce 250ms
-    S->>A: list(term)
-    A->>C: GET /api/notes?search=term
+    S->>A: search(term)
+    A->>C: GET /api/notes/search?term=term
     C->>D: query with EF.Functions.Like (escaped)
     D-->>C: matching rows
-    C-->>A: NoteDto[]
-    A-->>S: Note[]
-    S-->>P: notes signal updates
-    P-->>U: list re-renders
+    C-->>A: SearchResultDto[] with ancestors
+    A-->>S: search suggestions
+    S-->>P: suggestions signal updates
+    U->>P: selects a result
+    P->>S: select(result.note.id)
+    S-->>P: tree, map, and detail synchronize
 ```
 
 ## Key architectural decisions
@@ -85,3 +87,5 @@ sequenceDiagram
 | No explicit CORS policy | Dev proxy avoids cross-origin calls entirely | A standalone-hosted FE would need CORS configured |
 | `Microsoft.OpenApi` pinned to 2.7.5 | 2.0.0 has CVE-2026-49451; 3.x breaks the `Microsoft.AspNetCore.OpenApi` source generator (`IOpenApiMediaType.Example` is readonly) | Must re-check this pin before any future upgrade |
 | Signals instead of NgRx | Small, single-feature app; signals are enough reactivity | Would need revisiting if state complexity grows significantly |
+| OpenLayers + OpenStreetMap | Provides map tiles, markers, and click-to-coordinate interaction without a UI component library | Adds client bundle size and requires network access for tiles |
+| One `Note` self-reference | A note-location is both content and hierarchy node, keeping one controller/resource | Parent changes are deliberately unsupported in the UI |

@@ -101,10 +101,16 @@ public class NotesController(NotesDbContext db) : ControllerBase
             return BadRequest("A note-location cannot be moved to a different parent.");
         }
 
+        if (!note.IsArchived && input.IsArchived && await db.Notes.AnyAsync(n => n.ParentId == id, ct))
+        {
+            return BadRequest("A note-location with children cannot be archived.");
+        }
+
         note.Title = input.Title.Trim();
         note.Description = input.Description;
         note.Latitude = input.Latitude;
         note.Longitude = input.Longitude;
+        note.IsArchived = input.IsArchived;
         note.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(ct);
 
@@ -118,6 +124,16 @@ public class NotesController(NotesDbContext db) : ControllerBase
         if (note is null)
         {
             return NotFound();
+        }
+
+        if (!note.IsArchived)
+        {
+            return BadRequest("Only archived note-locations can be deleted.");
+        }
+
+        if (await db.Notes.AnyAsync(n => n.ParentId == id, ct))
+        {
+            return BadRequest("A note-location with children cannot be deleted.");
         }
 
         db.Notes.Remove(note);

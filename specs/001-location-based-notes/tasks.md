@@ -101,12 +101,12 @@ description: "Implementation tasks for Location-Based Notes"
 
 **Independent Test**: Archive/restore/delete a leaf and attempt those operations on a parent; verify visual archive state and server-enforced explanations.
 
-- [ ] T038 [US4] Write archive, restore, active-delete, and has-children rejection tests in `be/travel-note-api.Tests/NotesControllerTests.cs`
-- [ ] T039 [US4] Enforce archive-state transitions and archived-childless-only deletion with actionable validation responses in `be/travel-note-api/Controllers/NotesController.cs`
-- [ ] T040 [P] [US4] Add delete and archive-state update methods to `fe/travel-notes-app/src/app/core/services/notes-api.ts`
-- [ ] T041 [US4] Add archive, restore, delete, blocked-action message, and post-delete parent/no-selection transitions to `fe/travel-notes-app/src/app/core/services/notes-store.ts` and `fe/travel-notes-app/src/app/core/services/notes-store.spec.ts`
-- [ ] T042 [US4] Add the archived edit indicator, restore toggle, archive/delete commands, disabled parent actions, and visible blocked-action explanation to `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.ts`, `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.html`, and `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.css`
-- [ ] T043 [US4] Confirm archived tree entries remain muted, visible, searchable, and selectable in `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.html` and `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.css`
+- [X] T038 [US4] Write archive, restore, active-delete, and has-children rejection tests in `be/travel-note-api.Tests/NotesControllerTests.cs`
+- [X] T039 [US4] Enforce archive-state transitions and archived-childless-only deletion with actionable validation responses in `be/travel-note-api/Controllers/NotesController.cs`
+- [X] T040 [P] [US4] Add delete and archive-state update methods to `fe/travel-notes-app/src/app/core/services/notes-api.ts`
+- [X] T041 [US4] Add archive, restore, delete, blocked-action message, and post-delete parent/no-selection transitions to `fe/travel-notes-app/src/app/core/services/notes-store.ts` and `fe/travel-notes-app/src/app/core/services/notes-store.spec.ts`
+- [X] T042 [US4] Add the archived edit indicator, restore toggle, archive/delete commands, disabled parent actions, and visible blocked-action explanation to `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.ts`, `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.html`, and `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.css`
+- [X] T043 [US4] Confirm archived tree entries remain muted, visible, searchable, and selectable in `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.html` and `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.css`
 
 **Checkpoint**: User Story 4 protects the hierarchy on both API and UI paths, with archive state visibly matching the supplied mockup.
 
@@ -116,9 +116,9 @@ description: "Implementation tasks for Location-Based Notes"
 
 **Independent Test**: At a phone viewport, complete browse, search, create, edit, archive, restore, and delete without horizontal scrolling.
 
-- [ ] T044 [US5] Implement responsive grid breakpoints that preserve the mockup's desktop three-panel proportions and stack map, tree, then context on small screens in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.css`
-- [ ] T045 [P] [US5] Make the location tree, search suggestions, map height, and detail/form actions touch-friendly without horizontal overflow in `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.css`, `fe/travel-notes-app/src/app/features/notes/location-search/location-search.css`, `fe/travel-notes-app/src/app/features/notes/location-map/location-map.css`, and `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.css`
-- [ ] T046 [US5] Add small-screen layout and control-visibility tests in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.spec.ts`
+- [X] T044 [US5] Implement responsive grid breakpoints that preserve the mockup's desktop three-panel proportions and stack map, tree, then context on small screens in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.css`
+- [X] T045 [P] [US5] Make the location tree, search suggestions, map height, and detail/form actions touch-friendly without horizontal overflow in `fe/travel-notes-app/src/app/features/notes/location-tree/location-tree.css`, `fe/travel-notes-app/src/app/features/notes/location-search/location-search.css`, `fe/travel-notes-app/src/app/features/notes/location-map/location-map.css`, and `fe/travel-notes-app/src/app/features/notes/location-detail/location-detail.css`
+- [X] T046 [US5] Add small-screen layout and control-visibility tests in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.spec.ts`
 
 **Checkpoint**: User Story 5 reproduces the intended map-first stacked layout and retains every feature workflow on mobile.
 
@@ -126,16 +126,16 @@ description: "Implementation tasks for Location-Based Notes"
 
 **Purpose**: Finish documentation, validate contracts, and make the visual reference an acceptance gate.
 
-- [ ] T047 [P] Update the implemented GUID hierarchy schema, reset instructions, and relationships in `docs/data-model.md`
-- [ ] T048 [P] Update hierarchy, type-ahead, archive/delete, GUID route/query, and validation behavior in `docs/api.md`
-- [ ] T049 [P] Update the location-notes component hierarchy, OpenLayers wrapper, shared primitives, and signal store responsibilities in `docs/frontend.md`
-- [ ] T050 [P] Update the map dependency, expanded notes data flow, and local reset decision in `docs/architecture.md`
-- [ ] T051 Seed 1,000 note-locations and measure repeated type-ahead searches against the two-second, 95% success threshold in `be/travel-note-api.Tests/NotesControllerTests.cs`
-- [ ] T052 Run backend contract, lifecycle, and search-performance tests with `dotnet test be/travel-note-api.Tests/travel-note-api.Tests.csproj` and resolve failures in `be/travel-note-api.Tests/NotesControllerTests.cs`
-- [ ] T053 Run frontend tests with `pnpm --dir fe/travel-notes-app exec ng test --no-watch`, using `fe/travel-notes-app/angular.json` as the test-runner configuration
-- [ ] T054 Build the frontend with `pnpm --dir fe/travel-notes-app build`, using `fe/travel-notes-app/package.json` as the build-script definition
-- [ ] T055 Execute every scenario in `specs/001-location-based-notes/quickstart.md` against the running app and fix discrepancies in the relevant source or durable documentation file
-- [ ] T056 Compare desktop and small-screen running-app screenshots with `docs/Specs/mockup-frontend.html`; correct visible deviations in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.css` and component styles before completion
+- [X] T047 [P] Update the implemented GUID hierarchy schema, reset instructions, and relationships in `docs/data-model.md`
+- [X] T048 [P] Update hierarchy, type-ahead, archive/delete, GUID route/query, and validation behavior in `docs/api.md`
+- [X] T049 [P] Update the location-notes component hierarchy, OpenLayers wrapper, shared primitives, and signal store responsibilities in `docs/frontend.md`
+- [X] T050 [P] Update the map dependency, expanded notes data flow, and local reset decision in `docs/architecture.md`
+- [X] T051 Seed 1,000 note-locations and measure repeated type-ahead searches against the two-second, 95% success threshold in `be/travel-note-api.Tests/NotesControllerTests.cs`
+- [X] T052 Run backend contract, lifecycle, and search-performance tests with `dotnet test be/travel-note-api.Tests/travel-note-api.Tests.csproj` and resolve failures in `be/travel-note-api.Tests/NotesControllerTests.cs`
+- [X] T053 Run frontend tests with `pnpm --dir fe/travel-notes-app exec ng test --no-watch`, using `fe/travel-notes-app/angular.json` as the test-runner configuration
+- [X] T054 Build the frontend with `pnpm --dir fe/travel-notes-app build`, using `fe/travel-notes-app/package.json` as the build-script definition
+- [X] T055 Execute every scenario in `specs/001-location-based-notes/quickstart.md` against the running app and fix discrepancies in the relevant source or durable documentation file
+- [X] T056 Compare desktop and small-screen running-app screenshots with `docs/Specs/mockup-frontend.html`; correct visible deviations in `fe/travel-notes-app/src/app/features/notes/notes-page/notes-page.css` and component styles before completion
 
 ## Dependencies and Execution Order
 

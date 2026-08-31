@@ -12,20 +12,17 @@ human-oriented summary, not a replacement for that spec.
 
 | Method | Route | Body | Success | Failure |
 |---|---|---|---|---|
-| GET | `/api/notes` | — | 200, `NoteDto[]` | — |
-| GET | `/api/notes?search={term}` | — | 200, `NoteDto[]` filtered by title/body | — |
+| GET | `/api/notes` | — | 200, root `NoteDto[]` | — |
+| GET | `/api/notes?parentId={guid}` | — | 200, direct-child `NoteDto[]` | — |
 | GET | `/api/notes/{id}` | — | 200, `NoteDto` | 404 if not found |
-| POST | `/api/notes` | `NoteInput` | 201, `NoteDto` (+ `Location` header) | 400 on validation failure |
-| PUT | `/api/notes/{id}` | `NoteInput` | 204 | 404 if not found, 400 on validation failure |
-| DELETE | `/api/notes/{id}` | — | 204 | 404 if not found |
+| GET | `/api/notes/search?term={term}` | — | 200, `SearchResultDto[]` | — |
+| POST | `/api/notes` | `NoteInput` | 201, `NoteDto` (+ `Location` header) | 400 on validation failure or unknown parent |
+| PUT | `/api/notes/{id}` | `NoteInput` | 204 | 404 if not found; 400 for reparenting or invalid archive transition |
+| DELETE | `/api/notes/{id}` | — | 204 | 404 if not found; 400 unless archived and childless |
 
 Notes:
-- List results are always sorted by `updatedAt` descending (most recently
-  updated first).
-- `search` matches (case-insensitively, for ASCII) against both `title` and
-  `body` using a SQLite `LIKE`, with `%`, `_`, and `\` escaped in the user input
-  first — so a literal `%` or `_` in a search term is treated literally, not as
-  a wildcard.
+- Root and child lists are always sorted by `updatedAt` descending.
+- Search matches (case-insensitively, for ASCII) both `title` and `description` using a SQLite `LIKE`, with `%`, `_`, and `\` escaped so they remain literal text.
 - `Title` is trimmed server-side before being persisted on both create and update.
 
 ## Schemas
@@ -34,9 +31,14 @@ Notes:
 
 ```ts
 {
-  id: number;
+  id: string; // GUID
   title: string;
-  body: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  parentId: string | null;
+  isArchived: boolean;
+  childCount: number;
   createdAt: string; // ISO 8601 UTC, e.g. "2026-08-28T12:34:56Z"
   updatedAt: string; // ISO 8601 UTC
 }
@@ -46,14 +48,18 @@ Notes:
 
 ```ts
 {
-  title: string; // required, non-empty after trim, max 200 chars
-  body: string;  // optional, max 20000 chars
+  title: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  parentId?: string | null;
+  isArchived?: boolean;
 }
 ```
 
-Validation is enforced via DataAnnotations (`[Required(AllowEmptyStrings = false)]`,
-`[MaxLength]`) — ASP.NET Core's automatic model validation returns 400 with a
-standard `ValidationProblemDetails` body when these are violated.
+`title` is required and limited to 200 characters, `description` is limited to 20,000 characters, and coordinates must be within geographic latitude/longitude bounds. The parent is immutable after creation. A location with children cannot be archived or deleted, and deletion requires a prior archive.
+
+**`SearchResultDto`** pairs a `note` with ordered `ancestors` (`id` and `title`) so a client can expand the selected result in its tree.
 
 ## Examples
 

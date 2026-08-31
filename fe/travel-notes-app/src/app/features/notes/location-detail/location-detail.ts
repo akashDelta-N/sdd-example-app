@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NoteLocation } from '../../../core/models/note';
 import { UiButton, UiEmptyState, UiField, UiTextInput, UiTextarea } from '../../../shared/components';
@@ -12,13 +12,15 @@ export class LocationDetail {
   readonly coordinates = input<{ latitude: number; longitude: number } | null>(null);
   readonly edit = output<void>();
   readonly addChild = output<void>();
-  readonly save = output<{ title: string; description: string }>();
+  readonly save = output<{ title: string; description: string; isArchived: boolean }>();
   readonly cancel = output<void>();
+  readonly remove = output<void>();
   private readonly formBuilder = inject(FormBuilder);
   protected readonly form = this.formBuilder.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
     description: ['', Validators.maxLength(20000)],
   });
+  protected readonly archiveState = signal(false);
 
   constructor() {
     effect(() => {
@@ -27,6 +29,7 @@ export class LocationDetail {
         title: this.mode() === 'edit' ? location?.title ?? '' : '',
         description: this.mode() === 'edit' ? location?.description ?? '' : '',
       });
+      this.archiveState.set(this.mode() === 'edit' && location?.isArchived === true);
     });
   }
 
@@ -39,6 +42,8 @@ export class LocationDetail {
       return;
     }
     const { title, description } = this.form.getRawValue();
-    this.save.emit({ title: title.trim(), description });
+    this.save.emit({ title: title.trim(), description, isArchived: this.archiveState() });
   }
+
+  protected toggleArchive(): void { this.archiveState.update((archived) => !archived); }
 }

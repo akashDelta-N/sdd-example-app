@@ -16,10 +16,10 @@ signals for state, `pnpm` as the package manager, and Vitest for tests.
 ```mermaid
 flowchart TD
     subgraph features/notes
-        NotesPage --> NoteList
-        NotesPage --> NoteForm
-        NoteList --> NoteItem
-        NoteList --> NoteForm
+      NotesPage --> LocationSearch
+      NotesPage --> LocationTree
+      NotesPage --> LocationMap
+      NotesPage --> LocationDetail
     end
     subgraph core
         NotesStore --> NotesApi
@@ -35,38 +35,24 @@ flowchart TD
 
 ### `features/notes` — the one vertical slice
 
-- **`NotesPage`** (container, `OnPush`): injects `NotesStore`, owns the search
-  `FormControl`, calls `store.load()` on init, and wires `create`/`update`/
-  `remove` mutations from child components to the store.
-- **`NoteForm`** (presentational): inputs `note` (optional — present when
-  editing) and `saving`; outputs `save` (`NoteInput`) and `cancel`. Uses
-  reactive forms (`FormBuilder`) with title required/max-200 validation. An
-  `effect` resets the form when the `note` input changes (entering/leaving edit
-  mode).
-- **`NoteList`** (presentational): inputs `notes`, `editingId`, `filtered`;
-  renders `NoteForm` inline for the note currently being edited, `NoteItem`
-  otherwise; shows `UiEmptyState` when the list is empty (message differs for
-  "no notes yet" vs "no results for this search").
-- **`NoteItem`** (presentational): renders a single note card with Edit/Delete
-  buttons; emits `edit`/`remove` with the note's `id`.
+- **`NotesPage`** (container, `OnPush`): owns the search control, calls `store.load()`, and composes the desktop tree/map/detail workspace. CSS stacks map, tree, then detail on small screens.
+- **`LocationTree`**: recursive presentational hierarchy with expanded, selected, and muted archived states.
+- **`LocationMap`**: an OpenLayers wrapper using OpenStreetMap tiles. It renders current markers, emits marker selection, and emits a coordinate point only in create/edit mode.
+- **`LocationDetail`**: read-only note view and shared create/edit form. Parent selection is never shown during editing. It also exposes archive/restore and archived-leaf deletion actions.
+- **`LocationSearch`**: type-ahead input and button-based matching-result list; a selected result returns to the normal tree/map/detail navigation flow.
 
 ### `core` — state and data access
 
 - **`NotesStore`** (`providedIn: 'root'`) — the single source of truth for
   notes state, built entirely from signals:
-  - `notes`, `search`, `loading`, `error`, `editingId` signals.
-  - Search input is debounced (250ms, `distinctUntilChanged`) through an RxJS
-    `Subject` piped with `takeUntilDestroyed()`, then triggers `load()`.
-  - `create`/`update`/`remove` all go through a private `mutate()` helper that
-    clears any previous error, awaits the API call, reloads the list, and sets
-    a user-facing error message on failure — no throwing back to the caller.
+  - `roots`, `childrenByParent`, `selected`, `expandedIds`, `breadcrumb`, and derived map `markers` signals synchronize browsing state.
+  - `mode` and `draftCoordinates` hold create/edit state and map-selected positions.
+  - Type-ahead input is debounced by 250 ms with RxJS and `takeUntilDestroyed()`; selecting a result clears the input and invokes normal selection/ancestor expansion.
+  - Mutations reload roots and retain or update selection; deleting a selected child returns selection to its parent.
   - Only `NotesPage` is expected to inject this store directly; other
     components receive data via `@Input`/emit via `@Output`.
-- **`NotesApi`** (`providedIn: 'root'`) — thin `HttpClient` wrapper over
-  `/api/notes` (`list`, `create`, `update`, `remove`), returns RxJS
-  `Observable`s; the store adapts these to promises via `firstValueFrom`.
-- **`core/models/note.ts`** — `Note`/`NoteInput` interfaces mirroring the
-  backend DTOs (see [data-model.md](data-model.md)).
+- **`NotesApi`** (`providedIn: 'root'`) is a thin `HttpClient` wrapper for root/child/detail/search reads and location mutations; the store adapts its observables via `firstValueFrom`.
+- **`core/models/note.ts`** defines GUID-string `NoteLocation`, input, marker, ancestor, and search-result shapes.
 
 ### `shared/components` — presentational UI primitive library
 
@@ -81,6 +67,7 @@ of writing raw styled `<button>`/`<input>` elements:
 | `UiField` | Label + hint/error wrapper around a form control |
 | `UiTextInput` / `UiTextarea` | `ControlValueAccessor` form controls, bindable via `[formControl]`/`formControlName` |
 | `UiButton` | Variant-based button (`primary`/`secondary`/`danger`/`ghost`) |
+| `UiIconButton` | Compact accessible icon-only control, used for tree expansion and adding roots |
 | `UiEmptyState` | Heading + message placeholder for empty lists |
 
 Conventions (see also [conventions.md](conventions.md)):

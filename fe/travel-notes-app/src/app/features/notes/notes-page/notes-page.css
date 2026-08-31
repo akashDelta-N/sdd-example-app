@@ -1,10 +1,10 @@
-:host { display: block; min-height: 100vh; padding: var(--space-4); }
-.workspace { display: grid; grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(17rem, 21rem); gap: var(--space-4); min-height: calc(100vh - var(--space-6)); }
-.tree-panel { overflow: auto; }
+:host { display: block; min-height: 100vh; padding: var(--space-4); overflow-x: hidden; }
+.workspace { display: grid; grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(17rem, 21rem); gap: var(--space-4); min-width: 0; min-height: calc(100vh - var(--space-6)); }
+.tree-panel { min-width: 0; overflow: auto; }
 .tree-panel header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-3); }
 .tree-panel h1 { margin: 0; font-size: var(--font-size-xl); }
-.map-panel { min-height: 38rem; padding: 0; overflow: hidden; }
-.detail-panel { align-self: start; }
+.map-panel { min-width: 0; min-height: 38rem; padding: 0; overflow: hidden; }
+.detail-panel { min-width: 0; align-self: start; }
 
 .error {
   margin: 0;
@@ -16,4 +16,11 @@
 }
 
 .error { position: fixed; right: var(--space-4); bottom: var(--space-4); max-width: 24rem; }
-@media (max-width: 48rem) { :host { padding: var(--space-3); } .workspace { grid-template-columns: 1fr; min-height: 0; } .map-panel { grid-row: 1; min-height: 24rem; } .tree-panel { grid-row: 2; } .detail-panel { grid-row: 3; } }
+@media (max-width: 48rem) {
+  :host { padding: var(--space-3); }
+  .workspace { grid-template-columns: minmax(0, 1fr); gap: var(--space-3); min-height: 0; }
+  .map-panel { grid-row: 1; min-height: 22rem; }
+  .tree-panel { grid-row: 2; max-height: 24rem; }
+  .detail-panel { grid-row: 3; }
+  .error { right: var(--space-3); bottom: var(--space-3); left: var(--space-3); max-width: none; }
+}

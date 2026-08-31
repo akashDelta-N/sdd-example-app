@@ -7,3 +7,6 @@ p { margin: 0; color: var(--color-text-muted); }
 .muted { font-style: italic; }
 .coordinates { margin-top: var(--space-4); font-size: var(--font-size-sm); font-style: italic; }
 ui-field { display: block; margin-top: var(--space-3); }
+.blocked { margin-top: var(--space-4); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.archived-banner { margin-top: var(--space-3); padding: var(--space-2); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-archived); }
+@media (max-width: 48rem) { .actions ui-button { flex: 1 1 8rem; } }

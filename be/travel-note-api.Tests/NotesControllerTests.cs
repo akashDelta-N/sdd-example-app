@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using travel_note_api.Controllers;
 using travel_note_api.Data;
 using travel_note_api.Dtos;
@@ -10,6 +11,78 @@ namespace travel_note_api.Tests;
 
 public class NotesControllerTests
 {
+    [Fact]
+    public async Task Search_returns_results_within_two_seconds_for_95_percent_of_queries_across_1000_locations()
+    {
+        await using var db = CreateContext();
+        var locations = Enumerable.Range(0, 1000)
+            .Select(index => CreateNote(title: $"Location {index:D4}", description: $"Travel note {index:D4}"));
+        db.Notes.AddRange(locations);
+        await db.SaveChangesAsync();
+        var controller = new NotesController(db);
+        var durations = new List<TimeSpan>();
+
+        for (var index = 0; index < 20; index++)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var result = await controller.Search($"{index * 50:D4}", CancellationToken.None);
+            stopwatch.Stop();
+            Assert.NotEmpty(Assert.IsAssignableFrom<IEnumerable<SearchResultDto>>(Assert.IsType<OkObjectResult>(result.Result).Value));
+            durations.Add(stopwatch.Elapsed);
+        }
+
+        Assert.True(durations.Count(duration => duration < TimeSpan.FromSeconds(2)) >= 19);
+    }
+
+    [Fact]
+    public async Task Update_archives_a_childless_location_and_allows_restore()
+    {
+        await using var db = CreateContext();
+        var note = CreateNote();
+        db.Notes.Add(note);
+        await db.SaveChangesAsync();
+
+        var archive = await new NotesController(db).Update(note.Id, Input(isArchived: true), CancellationToken.None);
+        var restore = await new NotesController(db).Update(note.Id, Input(isArchived: false), CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(archive);
+        Assert.IsType<NoContentResult>(restore);
+        Assert.False((await db.Notes.FindAsync(note.Id))!.IsArchived);
+    }
+
+    [Fact]
+    public async Task Update_rejects_archiving_a_location_with_children()
+    {
+        await using var db = CreateContext();
+        var parent = CreateNote();
+        db.Notes.AddRange(parent, CreateNote(parent.Id));
+        await db.SaveChangesAsync();
+
+        var result = await new NotesController(db).Update(parent.Id, Input(isArchived: true), CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_requires_an_archived_childless_location()
+    {
+        await using var db = CreateContext();
+        var active = CreateNote();
+        var archivedParent = CreateNote(isArchived: true);
+        var archivedLeaf = CreateNote(isArchived: true);
+        db.Notes.AddRange(active, archivedParent, CreateNote(archivedParent.Id), archivedLeaf);
+        await db.SaveChangesAsync();
+        var controller = new NotesController(db);
+
+        var activeResult = await controller.Delete(active.Id, CancellationToken.None);
+        var parentResult = await controller.Delete(archivedParent.Id, CancellationToken.None);
+        var leafResult = await controller.Delete(archivedLeaf.Id, CancellationToken.None);
+
+        Assert.IsType<BadRequestObjectResult>(activeResult);
+        Assert.IsType<BadRequestObjectResult>(parentResult);
+        Assert.IsType<NoContentResult>(leafResult);
+    }
+
     [Fact]
     public async Task Search_matches_title_and_description_and_returns_ordered_ancestors()
     {
@@ -128,7 +201,7 @@ public class NotesControllerTests
         return new NotesDbContext(options);
     }
 
-    private static Note CreateNote(Guid? parentId = null, string title = "Location", string description = "") => new()
+    private static Note CreateNote(Guid? parentId = null, string title = "Location", string description = "", bool isArchived = false) => new()
     {
         Id = Guid.NewGuid(),
         ParentId = parentId,
@@ -136,16 +209,18 @@ public class NotesControllerTests
         Description = description,
         Latitude = 35.0m,
         Longitude = 139.0m,
+        IsArchived = isArchived,
         CreatedAt = DateTime.UtcNow,
         UpdatedAt = DateTime.UtcNow
     };
 
-    private static NoteInput Input(Guid? parentId = null) => new()
+    private static NoteInput Input(Guid? parentId = null, bool isArchived = false) => new()
     {
         Title = "New location",
         Description = string.Empty,
         Latitude = 35.0m,
         Longitude = 139.0m,
-        ParentId = parentId
+        ParentId = parentId,
+        IsArchived = isArchived
     };
 }
