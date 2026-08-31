@@ -70,9 +70,9 @@ be/
 fe/travel-notes-app/
 └── src/app/
     ├── core/
-    │   ├── models/note-location.ts
-    │   ├── notes-api.service.ts
-    │   └── notes.store.ts
+    │   ├── models/note.ts
+    │   ├── services/notes-api.ts
+    │   └── services/notes-store.ts
     ├── features/notes/
     │   ├── notes-page.*
     │   ├── location-tree/

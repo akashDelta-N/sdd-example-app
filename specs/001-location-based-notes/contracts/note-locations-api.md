@@ -36,7 +36,7 @@ type SearchResult = NoteLocation & {
 
 | Method | Route | Request | Success | Failures |
 |---|---|---|---|---|
-| GET | `/api/notes` | Optional `search`; optional `parentId` | 200, `NoteLocation[]` | 400 for invalid query values |
+| GET | `/api/notes` | Optional `parentId` | 200, `NoteLocation[]` | 400 for invalid query values |
 | GET | `/api/notes/{id}` | None | 200, `NoteLocation` | 404 when absent |
 | POST | `/api/notes` | `NoteLocationInput` | 201, `NoteLocation` | 400 for invalid fields or unknown parent |
 | PUT | `/api/notes/{id}` | `NoteLocationInput` without a changed `parentId` | 204 | 400 for invalid fields, parent change, or forbidden archive transition; 404 when absent |
@@ -46,7 +46,7 @@ type SearchResult = NoteLocation & {
 ## Behavior Rules
 
 - `GET /api/notes` without `parentId` returns root locations. With a GUID `parentId`, it returns direct children only. The implementation may use a separate hierarchy read internally, but the external result is always a flat collection of direct nodes.
-- `search` and `term` match title and description using literal user input; wildcard and escape characters are treated as text, not query syntax.
+- `term` matches title and description using literal user input; wildcard and escape characters are treated as text, not query syntax.
 - `POST` accepts `parentId` only when it is a valid GUID referencing an existing location; omission or `null` creates a root.
 - `PUT` preserves the stored `parentId`. Sending a different parent is rejected.
 - A transition from active to archived is accepted only when `childCount` is zero. A transition from archived to active is accepted only through `PUT`.
